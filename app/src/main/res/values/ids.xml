@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="nav_coordinates" type="id" />
+    <item name="nav_places" type="id" />
+    <item name="nav_global_places" type="id" />
+    <item name="nav_account" type="id" />
+</resources>
