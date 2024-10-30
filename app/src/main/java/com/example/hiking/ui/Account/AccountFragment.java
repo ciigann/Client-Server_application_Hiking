@@ -17,11 +17,20 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.hiking.databinding.FragmentAccountBinding;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+
 public class AccountFragment extends Fragment {
 
     private FragmentAccountBinding binding;
     private AccountViewModel accountViewModel;
     private SharedPreferences sharedPreferences;
+    private Socket client;
+    private OutputStream outputStream;
+
+    private String SERVER_IP = "5.165.231.240"; // глобальный IP-адрес
+    private int SERVER_PORT = 12345;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -52,6 +61,7 @@ public class AccountFragment extends Fragment {
             // Логика для входа в аккаунт
             Toast.makeText(getContext(), "Вход в аккаунт: " + email, Toast.LENGTH_SHORT).show();
             saveCredentials(email, password);
+            sendCredentials(email, password);
         });
 
         createAccountButton.setOnClickListener(v -> {
@@ -69,8 +79,13 @@ public class AccountFragment extends Fragment {
         });
 
         ipSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // Логика для переключения IP
-            Toast.makeText(getContext(), "Local IP: " + isChecked, Toast.LENGTH_SHORT).show();
+            if (isChecked) {
+                SERVER_IP = "192.168.43.145";
+                SERVER_PORT = 12348;
+            } else {
+                SERVER_IP = "5.165.231.240";
+                SERVER_PORT = 12345;
+            }
         });
 
         return root;
@@ -90,10 +105,48 @@ public class AccountFragment extends Fragment {
         editor.apply();
     }
 
+    private void sendCredentials(final String email, final String password) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (client == null || client.isClosed()) {
+                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        outputStream = client.getOutputStream();
+                    }
+                    String data = "<get><email>" + email + "<password>" + password;
+                    outputStream.write(data.getBytes("UTF-8"));
+                    outputStream.flush();
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Соединение с сервером установлено", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Ошибка подключения к серверу", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        try {
+            if (client != null) {
+                client.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
