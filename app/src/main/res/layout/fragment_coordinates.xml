@@ -19,10 +19,10 @@
 
         <Switch
             android:id="@+id/ipSwitch"
-            android:layout_width="108dp"
+            android:layout_width="134dp"
             android:layout_height="wrap_content"
             android:minHeight="48dp"
-            android:text="Local IP" />
+            android:text="automatic" />
 
     </LinearLayout>
 
