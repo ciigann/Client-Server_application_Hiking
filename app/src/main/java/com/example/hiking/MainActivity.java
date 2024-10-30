@@ -12,7 +12,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.hiking.databinding.ActivityMainBinding;
 import com.google.android.material.navigation.NavigationView;
-//3
+//4
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
