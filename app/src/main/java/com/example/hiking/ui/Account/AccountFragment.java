@@ -2,7 +2,9 @@ package com.example.hiking.ui.Account;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.hiking.databinding.FragmentAccountBinding;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
@@ -28,6 +31,7 @@ public class AccountFragment extends Fragment {
     private SharedPreferences sharedPreferences;
     private Socket client;
     private OutputStream outputStream;
+    private InputStream inputStream;
 
     private String SERVER_IP = "5.165.231.240"; // глобальный IP-адрес
     private int SERVER_PORT = 12345;
@@ -42,6 +46,9 @@ public class AccountFragment extends Fragment {
         // Найти элементы UI
         EditText emailEditText = binding.emailEditText;
         EditText passwordEditText = binding.passwordEditText;
+        EditText nameEditText = binding.nameEditText;
+        EditText surnameEditText = binding.surnameEditText;
+        EditText patronymicEditText = binding.patronymicEditText;
         Button loginButton = binding.loginButton;
         Button createAccountButton = binding.createAccountButton;
         Button deleteAccountButton = binding.deleteAccountButton;
@@ -61,15 +68,30 @@ public class AccountFragment extends Fragment {
             // Логика для входа в аккаунт
             Toast.makeText(getContext(), "Вход в аккаунт: " + email, Toast.LENGTH_SHORT).show();
             saveCredentials(email, password);
-            sendCredentials(email, password);
+            sendCredentials(email, password, emailEditText, passwordEditText);
         });
 
         createAccountButton.setOnClickListener(v -> {
             String email = emailEditText.getText().toString();
             String password = passwordEditText.getText().toString();
-            // Логика для создания аккаунта
-            Toast.makeText(getContext(), "Создание аккаунта: " + email, Toast.LENGTH_SHORT).show();
-            saveCredentials(email, password);
+            String name = nameEditText.getText().toString();
+            String surname = surnameEditText.getText().toString();
+            String patronymic = patronymicEditText.getText().toString();
+
+            if (email.isEmpty() || password.isEmpty() || name.isEmpty()) {
+                // Показать дополнительные поля для ввода
+                emailEditText.setVisibility(View.VISIBLE);
+                passwordEditText.setVisibility(View.VISIBLE);
+                nameEditText.setVisibility(View.VISIBLE);
+                surnameEditText.setVisibility(View.VISIBLE);
+                patronymicEditText.setVisibility(View.VISIBLE);
+                Toast.makeText(getContext(), "Пожалуйста, заполните все обязательные поля", Toast.LENGTH_SHORT).show();
+            } else {
+                // Логика для создания аккаунта
+                Toast.makeText(getContext(), "Создание аккаунта: " + email, Toast.LENGTH_SHORT).show();
+                saveCredentials(email, password);
+                sendCreateAccountRequest(email, password, name, surname, patronymic, emailEditText, passwordEditText);
+            }
         });
 
         deleteAccountButton.setOnClickListener(v -> {
@@ -105,7 +127,7 @@ public class AccountFragment extends Fragment {
         editor.apply();
     }
 
-    private void sendCredentials(final String email, final String password) {
+    private void sendCredentials(final String email, final String password, final EditText emailEditText, final EditText passwordEditText) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -113,18 +135,83 @@ public class AccountFragment extends Fragment {
                     if (client == null || client.isClosed()) {
                         client = new Socket(SERVER_IP, SERVER_PORT);
                         outputStream = client.getOutputStream();
+                        inputStream = client.getInputStream();
                     }
                     String data = "<get><email>" + email + "<password>" + password;
                     outputStream.write(data.getBytes("UTF-8"));
                     outputStream.flush();
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(requireContext(), "Соединение с сервером установлено", Toast.LENGTH_SHORT).show();
+                            if (response.contains("<get>True")) {
+                                emailEditText.setTextColor(Color.GREEN);
+                                passwordEditText.setTextColor(Color.GREEN);
+                                Toast.makeText(requireContext(), "Успешный вход", Toast.LENGTH_SHORT).show();
+                            } else {
+                                emailEditText.setTextColor(Color.RED);
+                                passwordEditText.setTextColor(Color.RED);
+                                Toast.makeText(requireContext(), "Неверные учетные данные", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
                 } catch (IOException e) {
                     e.printStackTrace();
+                    Log.e("AccountFragment", "Error connecting to server: " + e.getMessage());
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Ошибка подключения к серверу", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void sendCreateAccountRequest(final String email, final String password, final String name, final String surname, final String patronymic, final EditText emailEditText, final EditText passwordEditText) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (client == null || client.isClosed()) {
+                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        outputStream = client.getOutputStream();
+                        inputStream = client.getInputStream();
+                    }
+                    String data = "<create><email>" + email + "<password>" + password + "<name>" + name + "<surname>" + surname + "<patronymic>" + patronymic;
+                    outputStream.write(data.getBytes("UTF-8"));
+                    outputStream.flush();
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.contains("<create>True")) {
+                                Toast.makeText(requireContext(), "Аккаунт успешно создан", Toast.LENGTH_SHORT).show();
+                                emailEditText.setTextColor(Color.BLACK); // Возврат к цвету по умолчанию
+                                passwordEditText.setTextColor(Color.BLACK); // Возврат к цвету по умолчанию
+                            } else if (response.contains("<create>False")) {
+                                Toast.makeText(requireContext(), "Ошибка создания аккаунта", Toast.LENGTH_SHORT).show();
+                                emailEditText.setTextColor(Color.BLACK); // Возврат к цвету по умолчанию
+                                passwordEditText.setTextColor(Color.BLACK); // Возврат к цвету по умолчанию
+                            } else {
+                                Toast.makeText(requireContext(), "Пользователь с таким паролем или почтой уже есть", Toast.LENGTH_SHORT).show();
+                                emailEditText.setTextColor(Color.RED);
+                                passwordEditText.setTextColor(Color.RED);
+                            }
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("AccountFragment", "Error connecting to server: " + e.getMessage());
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -149,5 +236,7 @@ public class AccountFragment extends Fragment {
         }
     }
 }
+
+
 
 
