@@ -95,9 +95,19 @@ public class AccountFragment extends Fragment {
         });
 
         deleteAccountButton.setOnClickListener(v -> {
-            // Логика для удаления аккаунта
-            Toast.makeText(getContext(), "Удаление аккаунта", Toast.LENGTH_SHORT).show();
-            clearCredentials();
+            String email = emailEditText.getText().toString();
+            String password = passwordEditText.getText().toString();
+
+            if (email.isEmpty() || password.isEmpty()) {
+                // Подсветить поля красным цветом
+                emailEditText.setTextColor(Color.RED);
+                passwordEditText.setTextColor(Color.RED);
+                Toast.makeText(getContext(), "Пожалуйста, заполните все обязательные поля", Toast.LENGTH_SHORT).show();
+            } else {
+                // Логика для удаления аккаунта
+                Toast.makeText(getContext(), "Удаление аккаунта: " + email, Toast.LENGTH_SHORT).show();
+                sendDeleteAccountRequest(email, password, emailEditText, passwordEditText);
+            }
         });
 
         ipSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -223,6 +233,52 @@ public class AccountFragment extends Fragment {
         }).start();
     }
 
+    private void sendDeleteAccountRequest(final String email, final String password, final EditText emailEditText, final EditText passwordEditText) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (client == null || client.isClosed()) {
+                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        outputStream = client.getOutputStream();
+                        inputStream = client.getInputStream();
+                    }
+                    String data = "<delete><email>" + email + "<password>" + password;
+                    outputStream.write(data.getBytes("UTF-8"));
+                    outputStream.flush();
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.contains("<delete>True")) {
+                                Toast.makeText(requireContext(), "Аккаунт успешно удален", Toast.LENGTH_SHORT).show();
+                                emailEditText.setTextColor(Color.BLACK); // Возврат к цвету по умолчанию
+                                passwordEditText.setTextColor(Color.BLACK); // Возврат к цвету по умолчанию
+                            } else {
+                                Toast.makeText(requireContext(), "Ошибка удаления аккаунта", Toast.LENGTH_SHORT).show();
+                                emailEditText.setTextColor(Color.BLACK); // Возврат к цвету по умолчанию
+                                passwordEditText.setTextColor(Color.BLACK); // Возврат к цвету по умолчанию
+                            }
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("AccountFragment", "Error connecting to server: " + e.getMessage());
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Ошибка подключения к серверу", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -236,6 +292,7 @@ public class AccountFragment extends Fragment {
         }
     }
 }
+
 
 
 
