@@ -18,7 +18,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.hiking.databinding.FragmentAccountBinding;
-import com.example.hiking.ui.SharedViewModel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +28,6 @@ public class AccountFragment extends Fragment {
 
     private FragmentAccountBinding binding;
     private AccountViewModel accountViewModel;
-    private SharedViewModel sharedViewModel;
     private SharedPreferences sharedPreferences;
     private Socket client;
     private OutputStream outputStream;
@@ -41,7 +39,6 @@ public class AccountFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         accountViewModel = new ViewModelProvider(this).get(AccountViewModel.class);
-        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         binding = FragmentAccountBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
@@ -165,58 +162,10 @@ public class AccountFragment extends Fragment {
                                 emailEditText.setTextColor(Color.GREEN);
                                 passwordEditText.setTextColor(Color.GREEN);
                                 Toast.makeText(requireContext(), "Успешный вход", Toast.LENGTH_SHORT).show();
-                                // Отправить запрос на получение координат
-                                sendCoordinatesRequest(email);
                             } else {
                                 emailEditText.setTextColor(Color.RED);
                                 passwordEditText.setTextColor(Color.RED);
                                 Toast.makeText(requireContext(), "Неверные учетные данные", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e("AccountFragment", "Error connecting to server: " + e.getMessage());
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(requireContext(), "Ошибка подключения к серверу", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-        }).start();
-    }
-
-    private void sendCoordinatesRequest(final String email) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
-                        outputStream = client.getOutputStream();
-                        inputStream = client.getInputStream();
-                    }
-                    String data = "<coordinates><email>" + email;
-                    outputStream.write(data.getBytes("UTF-8"));
-                    outputStream.flush();
-
-                    byte[] buffer = new byte[1024];
-                    int bytesRead = inputStream.read(buffer);
-                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
-
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (response.contains("<coordinates>")) {
-                                String[] parts = response.split(";");
-                                String coordinates = parts[0].replace("<coordinates>", "").trim();
-                                String time = parts[1].replace("<time>", "").trim();
-                                // Обновить данные в SharedViewModel
-                                sharedViewModel.setCoordinates("Координаты: получены\n" + coordinates + "\n" + time);
-                            } else {
-                                Toast.makeText(requireContext(), "Ошибка получения координат", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
@@ -343,8 +292,6 @@ public class AccountFragment extends Fragment {
         }
     }
 }
-
-
 
 
 
