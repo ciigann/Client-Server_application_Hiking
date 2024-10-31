@@ -162,11 +162,51 @@ public class AccountFragment extends Fragment {
                                 emailEditText.setTextColor(Color.GREEN);
                                 passwordEditText.setTextColor(Color.GREEN);
                                 Toast.makeText(requireContext(), "Успешный вход", Toast.LENGTH_SHORT).show();
+                                // Отправить запрос на получение координат
+                                sendCoordinatesRequest(email);
                             } else {
                                 emailEditText.setTextColor(Color.RED);
                                 passwordEditText.setTextColor(Color.RED);
                                 Toast.makeText(requireContext(), "Неверные учетные данные", Toast.LENGTH_SHORT).show();
                             }
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("AccountFragment", "Error connecting to server: " + e.getMessage());
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Ошибка подключения к серверу", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void sendCoordinatesRequest(final String email) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (client == null || client.isClosed()) {
+                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        outputStream = client.getOutputStream();
+                        inputStream = client.getInputStream();
+                    }
+                    String data = "<coordinates><email>" + email;
+                    outputStream.write(data.getBytes("UTF-8"));
+                    outputStream.flush();
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Полученные координаты: " + response, Toast.LENGTH_SHORT).show();
                         }
                     });
                 } catch (IOException e) {
@@ -292,6 +332,7 @@ public class AccountFragment extends Fragment {
         }
     }
 }
+
 
 
 
