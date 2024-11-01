@@ -214,8 +214,6 @@ public class AccountFragment extends Fragment {
                             if (response.contains("<coordinates>")) {
                                 // Удалить флаг <coordinates> из начала строки
                                 String coordinatesText = response.replace("<coordinates>", "").trim();
-                                // Заменить запятые на пробелы
-                                coordinatesText = coordinatesText.replace(",", " ");
                                 // Разделить строку на список координат
                                 List<String> coordinates = new ArrayList<>();
                                 String[] parts = coordinatesText.split(";");

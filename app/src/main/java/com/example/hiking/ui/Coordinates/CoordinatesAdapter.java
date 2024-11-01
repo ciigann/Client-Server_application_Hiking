@@ -1,5 +1,6 @@
 package com.example.hiking.ui.Coordinates;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,9 +16,13 @@ import java.util.List;
 public class CoordinatesAdapter extends RecyclerView.Adapter<CoordinatesAdapter.CoordinatesViewHolder> {
 
     private List<String> coordinatesList;
+    private Context context;
+    private OnCoordinateClickListener listener;
 
-    public CoordinatesAdapter(List<String> coordinatesList) {
+    public CoordinatesAdapter(List<String> coordinatesList, Context context, OnCoordinateClickListener listener) {
         this.coordinatesList = coordinatesList;
+        this.context = context;
+        this.listener = listener;
     }
 
     @NonNull
@@ -30,6 +35,12 @@ public class CoordinatesAdapter extends RecyclerView.Adapter<CoordinatesAdapter.
     @Override
     public void onBindViewHolder(@NonNull CoordinatesViewHolder holder, int position) {
         holder.coordinateTextView.setText(coordinatesList.get(position));
+        holder.coordinateTextView.setOnClickListener(v -> {
+            String coordinates = coordinatesList.get(position);
+            if (listener != null) {
+                listener.onCoordinateClick(coordinates);
+            }
+        });
     }
 
     @Override
@@ -50,6 +61,11 @@ public class CoordinatesAdapter extends RecyclerView.Adapter<CoordinatesAdapter.
             coordinateTextView = itemView.findViewById(R.id.coordinateTextView);
         }
     }
+
+    public interface OnCoordinateClickListener {
+        void onCoordinateClick(String coordinates);
+    }
 }
+
 
 

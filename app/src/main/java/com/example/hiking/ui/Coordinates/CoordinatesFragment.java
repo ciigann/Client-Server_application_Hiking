@@ -19,7 +19,7 @@ import com.example.hiking.ui.SharedViewModel;
 
 import java.util.ArrayList;
 
-public class CoordinatesFragment extends Fragment {
+public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.OnCoordinateClickListener {
 
     private FragmentCoordinatesBinding binding;
     private SharedViewModel sharedViewModel;
@@ -40,7 +40,7 @@ public class CoordinatesFragment extends Fragment {
         // Настройка RecyclerView
         RecyclerView recyclerView = binding.recyclerViewCoordinates;
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        coordinatesAdapter = new CoordinatesAdapter(new ArrayList<>());
+        coordinatesAdapter = new CoordinatesAdapter(new ArrayList<>(), requireContext(), this);
         recyclerView.setAdapter(coordinatesAdapter);
 
         // Наблюдение за изменениями данных в SharedViewModel
@@ -67,7 +67,18 @@ public class CoordinatesFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
+
+    @Override
+    public void onCoordinateClick(String coordinates) {
+        // Извлечь координаты из строки
+        String[] parts = coordinates.split(" ");
+        if (parts.length >= 2) {
+            String coords = parts[1]; // Предполагается, что координаты находятся во второй части строки
+            MapDialog.showMapDialog(requireContext(), coords);
+        }
+    }
 }
+
 
 
 
