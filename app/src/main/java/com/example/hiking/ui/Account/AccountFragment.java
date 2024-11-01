@@ -213,15 +213,17 @@ public class AccountFragment extends Fragment {
                                 String[] parts = response.split(";");
                                 StringBuilder coordinatesBuilder = new StringBuilder();
                                 for (String part : parts) {
-                                    String[] coordinateTime = part.split(",");
+                                    String[] coordinateTime = part.split("<time>");
                                     if (coordinateTime.length == 2) {
                                         String coordinates = coordinateTime[0].trim();
                                         String time = coordinateTime[1].trim();
                                         coordinatesBuilder.append("Координаты: ").append(coordinates).append(" Время: ").append(time).append("\n");
                                     }
                                 }
+                                // Удалить флаг <coordinates> из начала строки
+                                String coordinatesText = coordinatesBuilder.toString().replace("<coordinates>", "").trim();
                                 // Обновить данные в SharedViewModel
-                                sharedViewModel.setCoordinates(coordinatesBuilder.toString());
+                                sharedViewModel.setCoordinates(coordinatesText);
                             } else {
                                 Toast.makeText(requireContext(), "Ошибка получения координат", Toast.LENGTH_SHORT).show();
                             }
@@ -350,6 +352,7 @@ public class AccountFragment extends Fragment {
         }
     }
 }
+
 
 
 

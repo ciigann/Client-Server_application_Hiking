@@ -60,3 +60,4 @@ public class CoordinatesFragment extends Fragment {
 }
 
 
+
