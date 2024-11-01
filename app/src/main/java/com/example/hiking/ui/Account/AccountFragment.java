@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AccountFragment extends Fragment {
 
@@ -210,20 +212,20 @@ public class AccountFragment extends Fragment {
                         @Override
                         public void run() {
                             if (response.contains("<coordinates>")) {
-                                String[] parts = response.split(";");
-                                StringBuilder coordinatesBuilder = new StringBuilder();
-                                for (String part : parts) {
-                                    String[] coordinateTime = part.split("<time>");
-                                    if (coordinateTime.length == 2) {
-                                        String coordinates = coordinateTime[0].trim();
-                                        String time = coordinateTime[1].trim();
-                                        coordinatesBuilder.append("Координаты: ").append(coordinates).append(" Время: ").append(time).append("\n");
-                                    }
-                                }
                                 // Удалить флаг <coordinates> из начала строки
-                                String coordinatesText = coordinatesBuilder.toString().replace("<coordinates>", "").trim();
+                                String coordinatesText = response.replace("<coordinates>", "").trim();
+                                // Заменить запятые на пробелы
+                                coordinatesText = coordinatesText.replace(",", " ");
+                                // Разделить строку на список координат
+                                List<String> coordinates = new ArrayList<>();
+                                String[] parts = coordinatesText.split(";");
+                                for (String part : parts) {
+                                    String[] coordsAndTime = part.split("<time>");
+                                    coordinates.add("Координаты: " + coordsAndTime[0] + " Время: " + coordsAndTime[1]);
+
+                                    }
                                 // Обновить данные в SharedViewModel
-                                sharedViewModel.setCoordinates(coordinatesText);
+                                sharedViewModel.setCoordinates(coordinates);
                             } else {
                                 Toast.makeText(requireContext(), "Ошибка получения координат", Toast.LENGTH_SHORT).show();
                             }

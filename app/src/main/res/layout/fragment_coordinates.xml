@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -5,38 +6,44 @@
     tools:context=".ui.Coordinates.CoordinatesFragment">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/linearLayout2"
+        android:layout_width="363dp"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/sendButton"
-            android:layout_width="181dp"
-            android:layout_height="wrap_content"
+            android:layout_width="149dp"
+            android:layout_height="match_parent"
             android:layout_marginEnd="16dp"
-            android:text="Send Location" />
+            android:text="Отправить координаты" />
 
         <Switch
             android:id="@+id/ipSwitch"
-            android:layout_width="134dp"
-            android:layout_height="wrap_content"
+            android:layout_width="152dp"
+            android:layout_height="match_parent"
             android:minHeight="48dp"
-            android:text="automatic" />
+            android:text="Автоматически" />
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/textCoordinates"
-        android:layout_width="367dp"
-        android:layout_height="410dp"
-        android:layout_below="@id/sendButton"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="79dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:text="Coordinates: "
-        tools:ignore="NotSibling" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewCoordinates"
+        android:layout_width="wrap_content"
+        android:layout_height="569dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="94dp"
+        android:layout_marginEnd="15dp"
+        android:clipToPadding="false"
+        android:padding="16dp"
+        android:scrollbars="vertical" />
 
 </RelativeLayout>
