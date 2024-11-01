@@ -65,6 +65,7 @@ public class AccountFragment extends Fragment {
         // Загрузка сохраненных данных
         emailEditText.setText(sharedPreferences.getString("email", ""));
         passwordEditText.setText(sharedPreferences.getString("password", ""));
+        ipSwitch.setChecked(sharedPreferences.getBoolean("ipSwitch", false));
 
         // Обработчики событий для кнопок
         loginButton.setOnClickListener(v -> {
@@ -123,6 +124,10 @@ public class AccountFragment extends Fragment {
                 SERVER_IP = "5.165.231.240";
                 SERVER_PORT = 12345;
             }
+            // Сохранение состояния переключателя
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("ipSwitch", isChecked);
+            editor.apply();
         });
 
         return root;
@@ -214,14 +219,21 @@ public class AccountFragment extends Fragment {
                             if (response.contains("<coordinates>")) {
                                 // Удалить флаг <coordinates> из начала строки
                                 String coordinatesText = response.replace("<coordinates>", "").trim();
+                                // Заменить запятые на пробелы
+                                coordinatesText = coordinatesText.replace(",", " ");
                                 // Разделить строку на список координат
                                 List<String> coordinates = new ArrayList<>();
                                 String[] parts = coordinatesText.split(";");
                                 for (String part : parts) {
                                     String[] coordsAndTime = part.split("<time>");
-                                    coordinates.add("Координаты: " + coordsAndTime[0] + " Время: " + coordsAndTime[1]);
-
+                                    if (coordsAndTime.length == 2) {
+                                        String coords = coordsAndTime[0].trim();
+                                        String time = coordsAndTime[1].trim();
+                                        coordinates.add("Координаты: " + coords + " Время: " + time);
+                                    } else {
+                                        coordinates.add("Координаты: " + part);
                                     }
+                                }
                                 // Обновить данные в SharedViewModel
                                 sharedViewModel.setCoordinates(coordinates);
                             } else {

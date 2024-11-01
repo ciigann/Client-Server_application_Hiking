@@ -18,6 +18,7 @@
         android:theme="@style/Theme.Hiking"
         tools:targetApi="31"
         android:enableOnBackInvokedCallback="true">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -25,10 +26,12 @@
             android:theme="@style/Theme.Hiking.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Добавьте другие активности и сервисы, если они есть -->
+
     </application>
 
 </manifest>
