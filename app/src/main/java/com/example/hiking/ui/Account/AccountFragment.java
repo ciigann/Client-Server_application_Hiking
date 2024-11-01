@@ -211,10 +211,17 @@ public class AccountFragment extends Fragment {
                         public void run() {
                             if (response.contains("<coordinates>")) {
                                 String[] parts = response.split(";");
-                                String coordinates = parts[0].replace("<coordinates>", "").trim();
-                                String time = parts[1].replace("<time>", "").trim();
+                                StringBuilder coordinatesBuilder = new StringBuilder();
+                                for (String part : parts) {
+                                    String[] coordinateTime = part.split(",");
+                                    if (coordinateTime.length == 2) {
+                                        String coordinates = coordinateTime[0].trim();
+                                        String time = coordinateTime[1].trim();
+                                        coordinatesBuilder.append("Координаты: ").append(coordinates).append(" Время: ").append(time).append("\n");
+                                    }
+                                }
                                 // Обновить данные в SharedViewModel
-                                sharedViewModel.setCoordinates("Координаты: получены\n" + coordinates + "\n" + time);
+                                sharedViewModel.setCoordinates(coordinatesBuilder.toString());
                             } else {
                                 Toast.makeText(requireContext(), "Ошибка получения координат", Toast.LENGTH_SHORT).show();
                             }
@@ -343,6 +350,7 @@ public class AccountFragment extends Fragment {
         }
     }
 }
+
 
 
 
