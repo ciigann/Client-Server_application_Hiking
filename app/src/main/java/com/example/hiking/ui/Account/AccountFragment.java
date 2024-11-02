@@ -30,16 +30,21 @@ import java.util.List;
 public class AccountFragment extends Fragment {
 
     private FragmentAccountBinding binding;
+    private AccountViewModel accountViewModel;
     private SharedViewModel sharedViewModel;
     private SharedPreferences sharedPreferences;
     private Socket client;
     private OutputStream outputStream;
     private InputStream inputStream;
+
     private String SERVER_IP = "5.165.231.240"; // глобальный IP-адрес
     private int SERVER_PORT = 12345;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+        accountViewModel = new ViewModelProvider(this).get(AccountViewModel.class);
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+
         binding = FragmentAccountBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
@@ -60,10 +65,6 @@ public class AccountFragment extends Fragment {
         // Загрузка сохраненных данных
         emailEditText.setText(sharedPreferences.getString("email", ""));
         passwordEditText.setText(sharedPreferences.getString("password", ""));
-        ipSwitch.setChecked(sharedPreferences.getBoolean("ipSwitch", false));
-
-        // Инициализация SharedViewModel
-        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         // Обработчики событий для кнопок
         loginButton.setOnClickListener(v -> {
@@ -122,10 +123,6 @@ public class AccountFragment extends Fragment {
                 SERVER_IP = "5.165.231.240";
                 SERVER_PORT = 12345;
             }
-            // Сохранение состояния переключателя
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("ipSwitch", isChecked);
-            editor.apply();
         });
 
         return root;
@@ -170,39 +167,12 @@ public class AccountFragment extends Fragment {
                                 emailEditText.setTextColor(Color.GREEN);
                                 passwordEditText.setTextColor(Color.GREEN);
                                 Toast.makeText(requireContext(), "Успешный вход", Toast.LENGTH_SHORT).show();
-
-                                // Извлечение session_id из ответа
-                                String sessionId = extractSessionId(response);
-                                if (sessionId != null) {
-                                    saveSessionId(sessionId);
-                                    Toast.makeText(requireContext(), "Session ID: " + sessionId, Toast.LENGTH_SHORT).show();
-                                }
-
                                 // Отправить запрос на получение координат
                                 sendCoordinatesRequest(email);
-                            } else if (response.contains("<get>False")) {
-                                emailEditText.setTextColor(Color.RED);
-                                passwordEditText.setTextColor(Color.RED);
-                                Toast.makeText(requireContext(), "Не удалось войти в аккаунт", Toast.LENGTH_SHORT).show();
                             } else {
                                 emailEditText.setTextColor(Color.RED);
                                 passwordEditText.setTextColor(Color.RED);
                                 Toast.makeText(requireContext(), "Неверные учетные данные", Toast.LENGTH_SHORT).show();
-                            }
-
-                            // Обработка дополнительных echo
-                            if (response.contains("Echo: <get>True<email>")) {
-                                String echoEmail = extractEchoValue(response, "<email>", "<session_id>");
-                                if (email.equals(echoEmail)) {
-                                    String echoSessionId = extractEchoValue(response, "<session_id>", "<");
-                                    Toast.makeText(requireContext(), "Echo: <get>True<email>" + echoEmail + "<session_id>" + echoSessionId, Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                            if (response.contains("Echo: <get>False<email>")) {
-                                String echoEmail = extractEchoValue(response, "<email>", "<");
-                                if (email.equals(echoEmail)) {
-                                    Toast.makeText(requireContext(), "Echo: <get>False<email>" + echoEmail, Toast.LENGTH_SHORT).show();
-                                }
                             }
                         }
                     });
@@ -218,32 +188,6 @@ public class AccountFragment extends Fragment {
                 }
             }
         }).start();
-    }
-
-    private String extractSessionId(String response) {
-        if (response.contains("<session_id>")) {
-            int startIndex = response.indexOf("<session_id>") + "<session_id>".length();
-            int endIndex = response.indexOf("<", startIndex);
-            if (endIndex != -1) {
-                return response.substring(startIndex, endIndex);
-            }
-        }
-        return null;
-    }
-
-    private String extractEchoValue(String response, String startTag, String endTag) {
-        int startIndex = response.indexOf(startTag) + startTag.length();
-        int endIndex = response.indexOf(endTag, startIndex);
-        if (endIndex != -1) {
-            return response.substring(startIndex, endIndex);
-        }
-        return null;
-    }
-
-    private void saveSessionId(String sessionId) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("session_id", sessionId);
-        editor.apply();
     }
 
     private void sendCoordinatesRequest(final String email) {
@@ -270,21 +214,14 @@ public class AccountFragment extends Fragment {
                             if (response.contains("<coordinates>")) {
                                 // Удалить флаг <coordinates> из начала строки
                                 String coordinatesText = response.replace("<coordinates>", "").trim();
-                                // Заменить запятые на пробелы
-                                coordinatesText = coordinatesText.replace(",", " ");
                                 // Разделить строку на список координат
                                 List<String> coordinates = new ArrayList<>();
                                 String[] parts = coordinatesText.split(";");
                                 for (String part : parts) {
                                     String[] coordsAndTime = part.split("<time>");
-                                    if (coordsAndTime.length == 2) {
-                                        String coords = coordsAndTime[0].trim();
-                                        String time = coordsAndTime[1].trim();
-                                        coordinates.add("Координаты: " + coords + " Время: " + time);
-                                    } else {
-                                        coordinates.add("Координаты: " + part);
+                                    coordinates.add("Координаты: " + coordsAndTime[0] + " Время: " + coordsAndTime[1]);
+
                                     }
-                                }
                                 // Обновить данные в SharedViewModel
                                 sharedViewModel.setCoordinates(coordinates);
                             } else {
@@ -415,6 +352,7 @@ public class AccountFragment extends Fragment {
         }
     }
 }
+
 
 
 
