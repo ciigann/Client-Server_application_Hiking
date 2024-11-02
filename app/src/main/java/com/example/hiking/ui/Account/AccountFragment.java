@@ -167,8 +167,38 @@ public class AccountFragment extends Fragment {
                                 emailEditText.setTextColor(Color.GREEN);
                                 passwordEditText.setTextColor(Color.GREEN);
                                 Toast.makeText(requireContext(), "Успешный вход", Toast.LENGTH_SHORT).show();
-                                // Отправить запрос на получение координат
-                                sendCoordinatesRequest(email);
+
+                                // Извлечение session_id из ответа
+                                String sessionId = extractEchoValue(response, "<session_id>", "<coordinates>");
+                                if (sessionId != null) {
+                                    saveSessionId(sessionId);
+                                    Toast.makeText(requireContext(), "Session ID: " + sessionId, Toast.LENGTH_SHORT).show();
+                                }
+
+                                // Извлечение координат из ответа
+                                String coordinates = extractEchoValue(response, "<coordinates>", "<coordinates_end>");
+                                if (coordinates != null) {
+                                    List<String> coordinatesList = new ArrayList<>();
+                                    String[] parts = coordinates.split(";");
+                                    for (String part : parts) {
+                                        String[] coordsAndTime = part.split("<time>");
+                                        if (coordsAndTime.length == 2) {
+                                            String coords = coordsAndTime[0].trim();
+                                            String time = coordsAndTime[1].trim();
+                                            coordinatesList.add("Координаты: " + coords + " Время: " + time);
+                                        } else {
+                                            coordinatesList.add("Координаты: " + part.trim());
+                                        }
+                                    }
+                                    sharedViewModel.setCoordinates(coordinatesList);
+                                }
+                            } else if (response.contains("<get>False")) {
+                                String echoEmail = extractEchoValue(response, "<email>", "<");
+                                if (email.equals(echoEmail)) {
+                                    emailEditText.setTextColor(Color.RED);
+                                    passwordEditText.setTextColor(Color.RED);
+                                    Toast.makeText(requireContext(), "Не удалось войти в аккаунт", Toast.LENGTH_SHORT).show();
+                                }
                             } else {
                                 emailEditText.setTextColor(Color.RED);
                                 passwordEditText.setTextColor(Color.RED);
@@ -190,57 +220,19 @@ public class AccountFragment extends Fragment {
         }).start();
     }
 
-    private void sendCoordinatesRequest(final String email) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
-                        outputStream = client.getOutputStream();
-                        inputStream = client.getInputStream();
-                    }
-                    String data = "<coordinates><email>" + email;
-                    outputStream.write(data.getBytes("UTF-8"));
-                    outputStream.flush();
+    private String extractEchoValue(String response, String startTag, String endTag) {
+        int startIndex = response.indexOf(startTag) + startTag.length();
+        int endIndex = response.indexOf(endTag, startIndex);
+        if (endIndex != -1) {
+            return response.substring(startIndex, endIndex);
+        }
+        return null;
+    }
 
-                    byte[] buffer = new byte[1024];
-                    int bytesRead = inputStream.read(buffer);
-                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
-
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (response.contains("<coordinates>")) {
-                                // Удалить флаг <coordinates> из начала строки
-                                String coordinatesText = response.replace("<coordinates>", "").trim();
-                                // Разделить строку на список координат
-                                List<String> coordinates = new ArrayList<>();
-                                String[] parts = coordinatesText.split(";");
-                                for (String part : parts) {
-                                    String[] coordsAndTime = part.split("<time>");
-                                    coordinates.add("Координаты: " + coordsAndTime[0] + " Время: " + coordsAndTime[1]);
-
-                                    }
-                                // Обновить данные в SharedViewModel
-                                sharedViewModel.setCoordinates(coordinates);
-                            } else {
-                                Toast.makeText(requireContext(), "Ошибка получения координат", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e("AccountFragment", "Error connecting to server: " + e.getMessage());
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(requireContext(), "Ошибка подключения к серверу", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-        }).start();
+    private void saveSessionId(String sessionId) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("session_id", sessionId);
+        editor.apply();
     }
 
     private void sendCreateAccountRequest(final String email, final String password, final String name, final String surname, final String patronymic, final EditText emailEditText, final EditText passwordEditText) {
@@ -352,7 +344,6 @@ public class AccountFragment extends Fragment {
         }
     }
 }
-
 
 
 
