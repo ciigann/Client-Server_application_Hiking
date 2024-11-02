@@ -187,7 +187,7 @@ public class AccountFragment extends Fragment {
                                             String time = coordsAndTime[1].trim();
                                             coordinatesList.add("Координаты: " + coords + " Время: " + time);
                                         } else {
-                                            coordinatesList.add("Координаты: " + part.trim());
+                                            coordinatesList.add("" + part.trim());
                                         }
                                     }
                                     sharedViewModel.setCoordinates(coordinatesList);
