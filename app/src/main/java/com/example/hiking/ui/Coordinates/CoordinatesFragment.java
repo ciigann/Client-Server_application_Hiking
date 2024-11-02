@@ -1,6 +1,8 @@
 package com.example.hiking.ui.Coordinates;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -31,6 +33,7 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.OnCoordinateClickListener {
@@ -44,6 +47,9 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     private InputStream inputStream;
     private String SERVER_IP = "5.165.231.240"; // глобальный IP-адрес
     private int SERVER_PORT = 12345;
+    private SharedPreferences sharedPreferences;
+    private String currentCoordinates;
+    private String currentTime;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -71,6 +77,9 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         // Инициализация FusedLocationProviderClient
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
 
+        // Инициализация SharedPreferences
+        sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
+
         // Обработчики событий для кнопок
         sendButton.setOnClickListener(v -> {
             if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -84,7 +93,10 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                     if (location != null) {
                         double latitude = location.getLatitude();
                         double longitude = location.getLongitude();
-                        String coordinates = "<location>" + latitude + "," + longitude + "<time>" + getCurrentTime();
+                        currentCoordinates = latitude + "," + longitude;
+                        currentTime = getCurrentTime();
+                        String sessionId = sharedPreferences.getString("session_id", "");
+                        String coordinates = "<location>" + latitude + "," + longitude + "<session_id>" + sessionId + "<time>" + currentTime;
                         sendLocation(coordinates);
                     } else {
                         Toast.makeText(requireContext(), "Location not available", Toast.LENGTH_SHORT).show();
@@ -128,7 +140,19 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(requireContext(), "Received: " + response, Toast.LENGTH_SHORT).show();
+                            if (response.contains("<location>True")) {
+                                Toast.makeText(requireContext(), "Координаты успешно сохранены", Toast.LENGTH_SHORT).show();
+                                List<String> currentCoordinatesList = sharedViewModel.getCoordinatesLiveData().getValue();
+                                if (currentCoordinatesList == null) {
+                                    currentCoordinatesList = new ArrayList<>();
+                                }
+                                currentCoordinatesList.add(0, "Координаты: " + currentCoordinates + " Время: " + currentTime);
+                                sharedViewModel.setCoordinates(currentCoordinatesList);
+                            } else if (response.contains("<location>False")) {
+                                Toast.makeText(requireContext(), "Координаты не были сохранены", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(requireContext(), "Received: " + response, Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
                 } catch (IOException e) {
@@ -180,7 +204,6 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         }
     }
 }
-
 
 
 
