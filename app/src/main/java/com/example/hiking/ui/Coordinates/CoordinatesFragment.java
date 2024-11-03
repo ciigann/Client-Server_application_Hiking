@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,6 +52,8 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     private String currentCoordinates;
     private String currentTime;
     private boolean isLoading = false;
+    private Handler handler;
+    private Runnable runnable;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -82,6 +85,16 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
         sharedViewModel.setSessionId(sharedPreferences.getString("session_id", ""));
 
+        // Инициализация Handler и Runnable для автоматической отправки координат
+        handler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                sendLocationAutomatically();
+                handler.postDelayed(this, 60000); // Повторять каждую минуту
+            }
+        };
+
         // Обработчики событий для кнопок
         sendButton.setOnClickListener(v -> {
             if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -111,9 +124,11 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
             if (isChecked) {
                 SERVER_IP = "192.168.43.145";
                 SERVER_PORT = 12348;
+                startAutomaticLocationUpdates();
             } else {
                 SERVER_IP = "5.165.231.240";
                 SERVER_PORT = 12345;
+                stopAutomaticLocationUpdates();
             }
         });
 
@@ -190,6 +205,38 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         }).start();
     }
 
+    private void sendLocationAutomatically() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            return;
+        }
+        fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+                    currentCoordinates = latitude + "," + longitude;
+                    currentTime = getCurrentTime();
+                    String sessionId = sharedPreferences.getString("session_id", "");
+                    String coordinates = "<location>" + latitude + "," + longitude + "<session_id>" + sessionId + "<time>" + currentTime;
+                    sendLocation(coordinates);
+                } else {
+                    Toast.makeText(requireContext(), "Location not available", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void startAutomaticLocationUpdates() {
+        handler.post(runnable);
+    }
+
+    private void stopAutomaticLocationUpdates() {
+        handler.removeCallbacks(runnable);
+    }
+
     private void loadMoreCoordinates() {
         new Thread(new Runnable() {
             @Override
@@ -200,8 +247,8 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
-                    int loadedCoordinatesNumber = sharedViewModel.getLoadedCoordinatesNumber();
-                    int sentCoordinatesNumber = sharedViewModel.getSentCoordinatesNumber();
+                    int loadedCoordinatesNumber = sharedViewModel.getLoadedCoordinatesNumber(); //какой двадцаток чисел нужно отправить
+                    int sentCoordinatesNumber = sharedViewModel.getSentCoordinatesNumber(); //насколько сдвинуть выбор двадцатка
                     String sessionId = sharedViewModel.getSessionId();
                     String request = "<more_coordinates>" + loadedCoordinatesNumber + "<sent_coordinates>" + sentCoordinatesNumber + "<session_id>" + sessionId;
                     outputStream.write(request.getBytes("UTF-8"));
@@ -284,6 +331,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         } catch (IOException e) {
             e.printStackTrace();
         }
+        stopAutomaticLocationUpdates();
     }
 
     @Override
@@ -309,5 +357,3 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         }
     }
 }
-
-
