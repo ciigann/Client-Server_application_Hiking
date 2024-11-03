@@ -8,7 +8,7 @@ import java.util.List;
 
 public class SharedViewModel extends ViewModel {
     private MutableLiveData<List<String>> coordinatesLiveData = new MutableLiveData<>();
-    private int loadedCoordinatesNumber = 1;
+    private int loadedCoordinatesNumber = 2;
     private int sentCoordinatesNumber = 0;
     private String sessionId;
 
