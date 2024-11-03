@@ -7,7 +7,10 @@ import androidx.lifecycle.ViewModel;
 import java.util.List;
 
 public class SharedViewModel extends ViewModel {
-    private final MutableLiveData<List<String>> coordinatesLiveData = new MutableLiveData<>();
+    private MutableLiveData<List<String>> coordinatesLiveData = new MutableLiveData<>();
+    private int loadedCoordinatesNumber = 1;
+    private int sentCoordinatesNumber = 0;
+    private String sessionId;
 
     public LiveData<List<String>> getCoordinatesLiveData() {
         return coordinatesLiveData;
@@ -16,4 +19,29 @@ public class SharedViewModel extends ViewModel {
     public void setCoordinates(List<String> coordinates) {
         coordinatesLiveData.setValue(coordinates);
     }
+
+    public int getLoadedCoordinatesNumber() {
+        return loadedCoordinatesNumber;
+    }
+
+    public void incrementLoadedCoordinatesNumber() {
+        loadedCoordinatesNumber++;
+    }
+
+    public int getSentCoordinatesNumber() {
+        return sentCoordinatesNumber;
+    }
+
+    public void incrementSentCoordinatesNumber() {
+        sentCoordinatesNumber++;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
 }
+

@@ -50,6 +50,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     private SharedPreferences sharedPreferences;
     private String currentCoordinates;
     private String currentTime;
+    private boolean isLoading = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -79,6 +80,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
 
         // Инициализация SharedPreferences
         sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
+        sharedViewModel.setSessionId(sharedPreferences.getString("session_id", ""));
 
         // Обработчики событий для кнопок
         sendButton.setOnClickListener(v -> {
@@ -115,6 +117,25 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
             }
         });
 
+        // Обработчик прокрутки для загрузки дополнительных координат
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy > 0) { // Прокрутка вниз
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
+
+                    if ((visibleItemCount + pastVisibleItems) >= totalItemCount && !isLoading) {
+                        isLoading = true;
+                        loadMoreCoordinates();
+                    }
+                }
+            }
+        });
+
         return root;
     }
 
@@ -148,6 +169,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                                 }
                                 currentCoordinatesList.add(0, "Координаты: " + currentCoordinates + " Время: " + currentTime);
                                 sharedViewModel.setCoordinates(currentCoordinatesList);
+                                sharedViewModel.incrementSentCoordinatesNumber();
                             } else if (response.contains("<location>False")) {
                                 Toast.makeText(requireContext(), "Координаты не были сохранены", Toast.LENGTH_SHORT).show();
                             } else {
@@ -166,6 +188,89 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                 }
             }
         }).start();
+    }
+
+    private void loadMoreCoordinates() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (client == null || client.isClosed()) {
+                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        outputStream = client.getOutputStream();
+                        inputStream = client.getInputStream();
+                    }
+                    int loadedCoordinatesNumber = sharedViewModel.getLoadedCoordinatesNumber();
+                    int sentCoordinatesNumber = sharedViewModel.getSentCoordinatesNumber();
+                    String sessionId = sharedViewModel.getSessionId();
+                    String request = "<more_coordinates>" + loadedCoordinatesNumber + "<sent_coordinates>" + sentCoordinatesNumber + "<session_id>" + sessionId;
+                    outputStream.write(request.getBytes("UTF-8"));
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.startsWith("<more_coordinates>")) {
+                                if (response.contains(sessionId)) {
+                                    // Обработка ответа от сервера
+                                    List<String> newCoordinates = parseResponse(response);
+                                    List<String> currentCoordinatesList = sharedViewModel.getCoordinatesLiveData().getValue();
+                                    if (currentCoordinatesList == null) {
+                                        currentCoordinatesList = new ArrayList<>();
+                                    }
+                                    currentCoordinatesList.addAll(newCoordinates);
+                                    sharedViewModel.setCoordinates(currentCoordinatesList);
+                                    sharedViewModel.incrementLoadedCoordinatesNumber();
+                                } else {
+                                    Toast.makeText(requireContext(), "Все координаты загружены в ленту", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(requireContext(), "Все координаты загружены в ленту", Toast.LENGTH_SHORT).show();
+                            }
+                            isLoading = false;
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Error loading more coordinates", Toast.LENGTH_SHORT).show();
+                            isLoading = false;
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private List<String> parseResponse(String response) {
+        List<String> newCoordinates = new ArrayList<>();
+        String coordinates = extractEchoValue(response, "<coordinates>", "<coordinates_end>");
+        if (coordinates != null) {
+            String[] parts = coordinates.split(";");
+            for (String part : parts) {
+                String[] coordsAndTime = part.split("<time>");
+                if (coordsAndTime.length == 2) {
+                    String coords = coordsAndTime[0].trim();
+                    String time = coordsAndTime[1].trim();
+                    newCoordinates.add("Координаты: " + coords + " Время: " + time);
+                } else {
+                    newCoordinates.add("" + part.trim());
+                }
+            }
+        }
+        return newCoordinates;
+    }
+
+    private String extractEchoValue(String response, String startTag, String endTag) {
+        int startIndex = response.indexOf(startTag);
+        int endIndex = response.indexOf(endTag);
+        if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
+            return response.substring(startIndex + startTag.length(), endIndex).trim();
+        }
+        return null;
     }
 
     @Override
@@ -204,6 +309,5 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         }
     }
 }
-
 
 
