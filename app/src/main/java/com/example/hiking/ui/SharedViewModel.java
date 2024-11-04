@@ -7,17 +7,37 @@ import androidx.lifecycle.ViewModel;
 import java.util.List;
 
 public class SharedViewModel extends ViewModel {
+
     private MutableLiveData<List<String>> coordinatesLiveData = new MutableLiveData<>();
+    private MutableLiveData<List<String>> placesLiveData = new MutableLiveData<>();
+    private String sessionId;
     private int loadedCoordinatesNumber = 2;
     private int sentCoordinatesNumber = 0;
-    private String sessionId;
+    private int loadedPlacesNumber = 2;
+    private int sentPlacesNumber = 0;
 
     public LiveData<List<String>> getCoordinatesLiveData() {
         return coordinatesLiveData;
     }
 
+    public LiveData<List<String>> getPlacesLiveData() {
+        return placesLiveData;
+    }
+
     public void setCoordinates(List<String> coordinates) {
         coordinatesLiveData.setValue(coordinates);
+    }
+
+    public void setPlaces(List<String> places) {
+        placesLiveData.setValue(places);
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public int getLoadedCoordinatesNumber() {
@@ -36,12 +56,21 @@ public class SharedViewModel extends ViewModel {
         sentCoordinatesNumber++;
     }
 
-    public String getSessionId() {
-        return sessionId;
+    public int getLoadedPlacesNumber() {
+        return loadedPlacesNumber;
     }
 
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
+    public void incrementLoadedPlacesNumber() {
+        loadedPlacesNumber++;
+    }
+
+    public int getSentPlacesNumber() {
+        return sentPlacesNumber;
+    }
+
+    public void incrementSentPlacesNumber() {
+        sentPlacesNumber++;
     }
 }
+
 

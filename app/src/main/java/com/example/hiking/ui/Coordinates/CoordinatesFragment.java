@@ -378,10 +378,21 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (response.contains("<place>True")) {
-                                Toast.makeText(requireContext(), "Место успешно сохранено", Toast.LENGTH_SHORT).show();
+                            if (response.contains("<place>False<session_id>" + sessionId)) {
+                                Toast.makeText(requireContext(), "Пользователь не найден", Toast.LENGTH_SHORT).show();
+                            } else if (response.contains("<place>duplicate<session_id>" + sessionId)) {
+                                Toast.makeText(requireContext(), "Такое место уже есть", Toast.LENGTH_SHORT).show();
+                            } else if (response.contains("<place>True<session_id>" + sessionId)) {
+                                Toast.makeText(requireContext(), "Новое место успешно создано", Toast.LENGTH_SHORT).show();
+                                List<String> currentPlacesList = sharedViewModel.getPlacesLiveData().getValue();
+                                if (currentPlacesList == null) {
+                                    currentPlacesList = new ArrayList<>();
+                                }
+                                currentPlacesList.add(0, "Место: " + name);
+                                sharedViewModel.setPlaces(currentPlacesList);
+                                sharedViewModel.incrementSentPlacesNumber();
                             } else {
-                                Toast.makeText(requireContext(), "Место не было сохранено", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(requireContext(), "Received: " + response, Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
