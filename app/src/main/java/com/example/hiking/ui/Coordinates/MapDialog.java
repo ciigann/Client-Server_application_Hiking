@@ -12,7 +12,7 @@ import com.example.hiking.R;
 
 public class MapDialog {
 
-    public static void showMapDialog(Context context, String coordinates) {
+    public static void showMapDialog(Context context, String coordinates, OnSavePlaceClickListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_map, null);
         builder.setView(dialogView);
@@ -30,9 +30,17 @@ public class MapDialog {
             }
         });
 
+        Button saveButton = dialogView.findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(v -> {
+            listener.onSavePlaceClick(coordinates);
+        });
+
         AlertDialog dialog = builder.create();
         closeButton.setTag(dialog); // Установить тег для кнопки закрытия
         dialog.show();
     }
-}
 
+    public interface OnSavePlaceClickListener {
+        void onSavePlaceClick(String coordinates);
+    }
+}

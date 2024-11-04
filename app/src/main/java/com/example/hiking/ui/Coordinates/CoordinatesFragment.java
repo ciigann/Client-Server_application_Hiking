@@ -247,8 +247,8 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
-                    int loadedCoordinatesNumber = sharedViewModel.getLoadedCoordinatesNumber(); //какой двадцаток чисел нужно отправить
-                    int sentCoordinatesNumber = sharedViewModel.getSentCoordinatesNumber(); //насколько сдвинуть выбор двадцатка
+                    int loadedCoordinatesNumber = sharedViewModel.getLoadedCoordinatesNumber();
+                    int sentCoordinatesNumber = sharedViewModel.getSentCoordinatesNumber();
                     String sessionId = sharedViewModel.getSessionId();
                     String request = "<more_coordinates>" + loadedCoordinatesNumber + "<sent_coordinates>" + sentCoordinatesNumber + "<session_id>" + sessionId;
                     outputStream.write(request.getBytes("UTF-8"));
@@ -258,7 +258,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (response.startsWith("<more_coordinates>")) {
+                            if (response.startsWith("<more_coordinates>True")) {
                                 if (response.contains(sessionId)) {
                                     // Обработка ответа от сервера
                                     List<String> newCoordinates = parseResponse(response);
@@ -340,8 +340,62 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         String[] parts = coordinates.split(" ");
         if (parts.length >= 2) {
             String coords = parts[1]; // Предполагается, что координаты находятся во второй части строки
-            MapDialog.showMapDialog(requireContext(), coords);
+            MapDialog.showMapDialog(requireContext(), coords, new MapDialog.OnSavePlaceClickListener() {
+                @Override
+                public void onSavePlaceClick(String coordinates) {
+                    showSavePlaceDialog(coordinates);
+                }
+            });
         }
+    }
+
+    private void showSavePlaceDialog(String coordinates) {
+        SavePlaceDialog savePlaceDialog = new SavePlaceDialog(requireContext(), coordinates, new SavePlaceDialog.OnSavePlaceClickListener() {
+            @Override
+            public void onSavePlaceClick(String name, String description, boolean isPrivate, String coordinates) {
+                sendSavePlaceRequest(name, description, isPrivate, coordinates);
+            }
+        });
+        savePlaceDialog.show();
+    }
+
+    private void sendSavePlaceRequest(String name, String description, boolean isPrivate, String coordinates) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (client == null || client.isClosed()) {
+                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        outputStream = client.getOutputStream();
+                        inputStream = client.getInputStream();
+                    }
+                    String sessionId = sharedPreferences.getString("session_id", "");
+                    String request = "<place>" + name + "<session_id>" + sessionId + "<coordinates>" + coordinates + "<description>" + description + "<privacy>" + isPrivate;
+                    outputStream.write(request.getBytes("UTF-8"));
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.contains("<place>True")) {
+                                Toast.makeText(requireContext(), "Место успешно сохранено", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(requireContext(), "Место не было сохранено", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Error connecting to server", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 
     @Override
