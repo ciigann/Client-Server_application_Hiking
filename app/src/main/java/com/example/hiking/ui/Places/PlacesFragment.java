@@ -184,26 +184,29 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
     }
 
     private void stopAutomaticLocationUpdates() {
-
     }
 
     @Override
     public void onPlaceClick(String place) {
-        // Извлечь место из строки
+        // Извлечь данные места из строки
         String[] parts = place.split(" ");
         if (parts.length >= 2) {
             String placeName = parts[1]; // Предполагается, что место находятся во второй части строки
-            showEditPlaceDialog(placeName);
+            String coordinates = "coordinates_example"; // Замените на реальные координаты
+            String description = "description_example"; // Замените на реальное описание
+            boolean isPrivate = false; // Замените на реальное значение приватности
+
+            showEditPlaceDialog(placeName, coordinates, description, isPrivate);
         }
     }
 
-    private void showEditPlaceDialog(String placeName) {
-        // Получить данные места по имени
-        String coordinates = "coordinates_example"; // Замените на реальные координаты
-        String description = "description_example"; // Замените на реальное описание
-        boolean isPrivate = false; // Замените на реальное значение приватности
-
-        EditPlaceDialog editPlaceDialog = new EditPlaceDialog();
+    private void showEditPlaceDialog(String placeName, String coordinates, String description, boolean isPrivate) {
+        EditPlaceDialog editPlaceDialog = new EditPlaceDialog(requireContext(), placeName, coordinates, description, isPrivate, new EditPlaceDialog.OnSavePlaceClickListener() {
+            @Override
+            public void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate) {
+                sendCorrectionPlaceRequest(name, coordinates, description, isPrivate);
+            }
+        });
         editPlaceDialog.show();
     }
 
@@ -258,14 +261,5 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
             }
         }
     }
-
-    private static class EditPlaceDialog {
-        public void show() {
-
-        }
-
-        public interface OnSavePlaceClickListener {
-            void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate);
-        }
-    }
 }
+

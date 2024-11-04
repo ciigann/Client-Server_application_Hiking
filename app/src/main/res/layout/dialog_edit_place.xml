@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/nameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Название места:"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/nameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/nameLabel"
+        android:layout_marginTop="8dp"
+        android:hint="Название места"
+        android:minHeight="48dp" />
+
+    <TextView
+        android:id="@+id/coordinatesLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/nameEditText"
+        android:layout_marginTop="16dp"
+        android:text="Координаты:"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/coordinatesEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/coordinatesLabel"
+        android:layout_marginTop="8dp"
+        android:hint="Координаты"
+        android:minHeight="48dp" />
+
+    <TextView
+        android:id="@+id/descriptionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/coordinatesEditText"
+        android:layout_marginTop="16dp"
+        android:text="Описание:"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/descriptionEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/descriptionLabel"
+        android:layout_marginTop="8dp"
+        android:hint="Описание"
+        android:minHeight="48dp" />
+
+    <Switch
+        android:id="@+id/privacySwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/descriptionEditText"
+        android:layout_marginTop="16dp"
+        android:minHeight="48dp"
+        android:text="Приватность" />
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/privacySwitch"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"
+        android:text="Сохранить" />
+
+</RelativeLayout>
