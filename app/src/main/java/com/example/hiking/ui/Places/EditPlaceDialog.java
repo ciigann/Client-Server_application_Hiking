@@ -26,12 +26,12 @@ public class EditPlaceDialog extends Dialog {
     private Switch privacySwitch;
     private Button saveButton;
     private WebView webView;
-    private OnSavePlaceClickListener onSavePlaceClickListener;
 
-    public EditPlaceDialog(@NonNull Context context, String name, String coordinates, String description, boolean isPrivate, OnSavePlaceClickListener listener) {
+    public EditPlaceDialog(@NonNull Context context, String name, String coordinates, String description, boolean isPrivate) {
         super(context);
         setContentView(R.layout.dialog_edit_place);
 
+        // Инициализация компонентов
         nameEditText = findViewById(R.id.nameEditText);
         coordinatesEditText = findViewById(R.id.coordinatesEditText);
         descriptionEditText = findViewById(R.id.descriptionEditText);
@@ -40,28 +40,21 @@ public class EditPlaceDialog extends Dialog {
         webView = findViewById(R.id.webView);
         Button closeButton = findViewById(R.id.closeButton);
 
+        // Установка начальных значений
         nameEditText.setText(name);
         coordinatesEditText.setText(coordinates);
         descriptionEditText.setText(description);
         privacySwitch.setChecked(isPrivate);
 
+        // Обработчик нажатия кнопки "Сохранить"
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String name = nameEditText.getText().toString().trim();
-                String coordinates = coordinatesEditText.getText().toString().trim();
-                String description = descriptionEditText.getText().toString().trim();
-                boolean isPrivate = privacySwitch.isChecked();
-
-                if (name.isEmpty()) {
-                    Toast.makeText(getContext(), "Please enter a name", Toast.LENGTH_SHORT).show();
-                } else {
-                    onSavePlaceClickListener.onSavePlaceClick(name, coordinates, description, isPrivate);
-                    dismiss();
-                }
+                Toast.makeText(getContext(), "Привет", Toast.LENGTH_SHORT).show();
             }
         });
 
+        // Обработчик нажатия кнопки "Закрыть"
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,6 +62,7 @@ public class EditPlaceDialog extends Dialog {
             }
         });
 
+        // Настройка WebView
         webView.setWebViewClient(new WebViewClient());
         webView.getSettings().setJavaScriptEnabled(true);
         updateMap();
@@ -79,6 +73,7 @@ public class EditPlaceDialog extends Dialog {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         }
 
+        // Установка высоты контейнера в 1.5 раза больше высоты экрана
         DisplayMetrics displayMetrics = new DisplayMetrics();
         window.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int screenHeight = displayMetrics.heightPixels;
@@ -99,11 +94,8 @@ public class EditPlaceDialog extends Dialog {
             webView.loadUrl(url);
         }
     }
-
-    public interface OnSavePlaceClickListener {
-        void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate);
-    }
 }
+
 
 
 

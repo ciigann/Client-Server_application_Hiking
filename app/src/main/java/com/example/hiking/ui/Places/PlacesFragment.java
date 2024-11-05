@@ -201,52 +201,8 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
     }
 
     private void showEditPlaceDialog(String placeName, String coordinates, String description, boolean isPrivate) {
-        EditPlaceDialog editPlaceDialog = new EditPlaceDialog(requireContext(), placeName, coordinates, description, isPrivate, new EditPlaceDialog.OnSavePlaceClickListener() {
-            @Override
-            public void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate) {
-                sendCorrectionPlaceRequest(name, coordinates, description, isPrivate);
-            }
-        });
+        EditPlaceDialog editPlaceDialog = new EditPlaceDialog(requireContext(), placeName, coordinates, description, isPrivate);
         editPlaceDialog.show();
-    }
-
-    private void sendCorrectionPlaceRequest(String name, String coordinates, String description, boolean isPrivate) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
-                        outputStream = client.getOutputStream();
-                        inputStream = client.getInputStream();
-                    }
-                    String sessionId = sharedPreferences.getString("session_id", "");
-                    String request = "<correction_place>" + name + "<session_id>" + sessionId + "<coordinates>" + coordinates + "<description>" + description + "<privacy>" + isPrivate;
-                    outputStream.write(request.getBytes("UTF-8"));
-                    byte[] buffer = new byte[1024];
-                    int bytesRead = inputStream.read(buffer);
-                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (response.contains("<correction_place>True")) {
-                                Toast.makeText(requireContext(), "Место успешно обновлено", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(requireContext(), "Место не было обновлено", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(requireContext(), "Error connecting to server", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-        }).start();
     }
 
     @Override
