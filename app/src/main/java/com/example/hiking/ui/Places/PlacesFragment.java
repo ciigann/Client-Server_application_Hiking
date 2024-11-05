@@ -162,9 +162,13 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
 
     private String extractEchoValue(String response, String startTag, String endTag) {
         int startIndex = response.indexOf(startTag);
-        int endIndex = response.indexOf(endTag);
-        if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
-            return response.substring(startIndex + startTag.length(), endIndex).trim();
+        if (startIndex != -1) {
+            int endIndex = response.indexOf(endTag, startIndex + startTag.length());
+            if (endIndex != -1) {
+                return response.substring(startIndex + startTag.length(), endIndex).trim();
+            } else {
+                return response.substring(startIndex + startTag.length()).trim();
+            }
         }
         return null;
     }
@@ -201,8 +205,88 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
     }
 
     private void showEditPlaceDialog(String placeName, String coordinates, String description, boolean isPrivate) {
-        EditPlaceDialog editPlaceDialog = new EditPlaceDialog(requireContext(), placeName, coordinates, description, isPrivate);
+        EditPlaceDialog editPlaceDialog = new EditPlaceDialog(requireContext(), placeName, coordinates, description, isPrivate, new EditPlaceDialog.OnSavePlaceClickListener() {
+            @Override
+            public void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate) {
+                sendCorrectionPlaceRequest(placeName, coordinates, description, isPrivate, name, coordinates, description, isPrivate);
+            }
+        });
         editPlaceDialog.show();
+    }
+
+    private void sendCorrectionPlaceRequest(String oldName, String oldCoordinates, String oldDescription, boolean oldIsPrivate, String newName, String newCoordinates, String newDescription, boolean newIsPrivate) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (client == null || client.isClosed()) {
+                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        outputStream = client.getOutputStream();
+                        inputStream = client.getInputStream();
+                    }
+                    String sessionId = sharedPreferences.getString("session_id", "");
+                    String request = "<correction_place>" + newName + "<session_id>" + sessionId + "<coordinates>" + newCoordinates + "<description>" + newDescription + "<privacy>" + newIsPrivate;
+                    outputStream.write(request.getBytes("UTF-8"));
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.contains("<correction_place>True")) {
+                                String responseSessionId = extractEchoValue(response, "<session_id>", "<session_id_end>");
+                                if (responseSessionId != null) {
+                                    Toast.makeText(requireContext(), "Полученный session_id: " + responseSessionId + "\nТекущий session_id: " + sessionId, Toast.LENGTH_LONG).show();
+                                    if (responseSessionId.equals(sessionId)) {
+                                        Toast.makeText(requireContext(), "Место успешно обновлено", Toast.LENGTH_SHORT).show();
+                                        updatePlaceInList(oldName, newName, newCoordinates, newDescription, newIsPrivate);
+                                    } else {
+                                        Toast.makeText(requireContext(), "Место не было обновлено", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(requireContext(), "Место не было обновлено", Toast.LENGTH_SHORT).show();
+                                }
+                            } else if (response.contains("<correction_place>False")) {
+                                String responseSessionId = extractEchoValue(response, "<session_id>", "<session_id_end>");
+                                if (responseSessionId != null) {
+                                    Toast.makeText(requireContext(), "Полученный session_id: " + responseSessionId + "\nТекущий session_id: " + sessionId, Toast.LENGTH_LONG).show();
+                                    if (responseSessionId.equals(sessionId)) {
+                                        Toast.makeText(requireContext(), "Место не было обновлено", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(requireContext(), "Место не было обновлено", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Error connecting to server", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void updatePlaceInList(String oldName, String newName, String newCoordinates, String newDescription, boolean newIsPrivate) {
+        List<String> places = sharedViewModel.getPlacesLiveData().getValue();
+        if (places != null) {
+            for (int i = 0; i < places.size(); i++) {
+                String place = places.get(i);
+                String[] parts = place.split(" ");
+                if (parts.length >= 2 && parts[1].equals(oldName)) {
+                    places.remove(i);
+                    places.add("Место: " + newName + " Координаты: " + newCoordinates + " Описание: " + newDescription + " Приватность: " + newIsPrivate);
+                    sharedViewModel.setPlaces(places);
+                    placesAdapter.updatePlaces(places);
+                    break;
+                }
+            }
+        }
     }
 
     @Override
