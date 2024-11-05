@@ -26,8 +26,9 @@ public class EditPlaceDialog extends Dialog {
     private Switch privacySwitch;
     private Button saveButton;
     private WebView webView;
+    private OnSavePlaceClickListener onSavePlaceClickListener;
 
-    public EditPlaceDialog(@NonNull Context context, String name, String coordinates, String description, boolean isPrivate) {
+    public EditPlaceDialog(@NonNull Context context, String name, String coordinates, String description, boolean isPrivate, OnSavePlaceClickListener listener) {
         super(context);
         setContentView(R.layout.dialog_edit_place);
 
@@ -46,11 +47,26 @@ public class EditPlaceDialog extends Dialog {
         descriptionEditText.setText(description);
         privacySwitch.setChecked(isPrivate);
 
+        // Установка слушателя
+        this.onSavePlaceClickListener = listener;
+
         // Обработчик нажатия кнопки "Сохранить"
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Привет", Toast.LENGTH_SHORT).show();
+                String name = nameEditText.getText().toString().trim();
+                String coordinates = coordinatesEditText.getText().toString().trim();
+                String description = descriptionEditText.getText().toString().trim();
+                boolean isPrivate = privacySwitch.isChecked();
+
+                if (name.isEmpty()) {
+                    Toast.makeText(getContext(), "Please enter a name", Toast.LENGTH_SHORT).show();
+                } else {
+                    if (onSavePlaceClickListener != null) {
+                        onSavePlaceClickListener.onSavePlaceClick(name, coordinates, description, isPrivate);
+                    }
+                    dismiss();
+                }
             }
         });
 
@@ -73,7 +89,6 @@ public class EditPlaceDialog extends Dialog {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         }
 
-        // Установка высоты контейнера в 1.5 раза больше высоты экрана
         DisplayMetrics displayMetrics = new DisplayMetrics();
         window.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int screenHeight = displayMetrics.heightPixels;
@@ -94,7 +109,12 @@ public class EditPlaceDialog extends Dialog {
             webView.loadUrl(url);
         }
     }
+
+    public interface OnSavePlaceClickListener {
+        void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate);
+    }
 }
+
 
 
 
