@@ -2,11 +2,15 @@ package com.example.hiking.ui.Places;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -34,6 +38,7 @@ public class EditPlaceDialog extends Dialog {
         privacySwitch = findViewById(R.id.privacySwitch);
         saveButton = findViewById(R.id.editSaveButton);
         webView = findViewById(R.id.webView);
+        Button closeButton = findViewById(R.id.closeButton);
 
         nameEditText.setText(name);
         coordinatesEditText.setText(coordinates);
@@ -57,9 +62,29 @@ public class EditPlaceDialog extends Dialog {
             }
         });
 
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
+
         webView.setWebViewClient(new WebViewClient());
         webView.getSettings().setJavaScriptEnabled(true);
         updateMap();
+
+        // Установите параметры окна для увеличения
+        Window window = getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        window.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenHeight = displayMetrics.heightPixels;
+
+        RelativeLayout container = findViewById(R.id.container);
+        container.getLayoutParams().height = screenHeight;
     }
 
     private void updateMap() {
@@ -79,5 +104,7 @@ public class EditPlaceDialog extends Dialog {
         void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate);
     }
 }
+
+
 
 
