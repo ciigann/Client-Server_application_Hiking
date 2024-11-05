@@ -21,28 +21,10 @@
         android:minHeight="48dp" />
 
     <TextView
-        android:id="@+id/coordinatesLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/nameEditText"
-        android:layout_marginTop="16dp"
-        android:text="Координаты:"
-        android:textSize="18sp" />
-
-    <EditText
-        android:id="@+id/coordinatesEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/coordinatesLabel"
-        android:layout_marginTop="8dp"
-        android:hint="Координаты"
-        android:minHeight="48dp" />
-
-    <TextView
         android:id="@+id/descriptionLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/coordinatesEditText"
+        android:layout_below="@id/nameEditText"
         android:layout_marginTop="16dp"
         android:text="Описание:"
         android:textSize="18sp" />
@@ -56,11 +38,36 @@
         android:hint="Описание"
         android:minHeight="48dp" />
 
+    <TextView
+        android:id="@+id/coordinatesLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/descriptionEditText"
+        android:layout_marginTop="16dp"
+        android:text="Координаты:"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/coordinatesEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/coordinatesLabel"
+        android:layout_marginTop="8dp"
+        android:hint="Координаты"
+        android:minHeight="48dp" />
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@id/coordinatesEditText"
+        android:layout_marginTop="8dp" />
+
     <Switch
         android:id="@+id/privacySwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/descriptionEditText"
+        android:layout_below="@id/webView"
         android:layout_marginTop="16dp"
         android:minHeight="48dp"
         android:text="Приватность" />
@@ -75,3 +82,4 @@
         android:text="Сохранить" />
 
 </RelativeLayout>
+

@@ -3,6 +3,8 @@ package com.example.hiking.ui.Places;
 import android.app.Dialog;
 import android.content.Context;
 import android.view.View;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -19,6 +21,7 @@ public class EditPlaceDialog extends Dialog {
     private EditText descriptionEditText;
     private Switch privacySwitch;
     private Button saveButton;
+    private WebView webView;
     private OnSavePlaceClickListener onSavePlaceClickListener;
 
     public EditPlaceDialog(@NonNull Context context, String name, String coordinates, String description, boolean isPrivate, OnSavePlaceClickListener listener) {
@@ -30,6 +33,7 @@ public class EditPlaceDialog extends Dialog {
         descriptionEditText = findViewById(R.id.descriptionEditText);
         privacySwitch = findViewById(R.id.privacySwitch);
         saveButton = findViewById(R.id.editSaveButton);
+        webView = findViewById(R.id.webView);
 
         nameEditText.setText(name);
         coordinatesEditText.setText(coordinates);
@@ -52,9 +56,28 @@ public class EditPlaceDialog extends Dialog {
                 }
             }
         });
+
+        webView.setWebViewClient(new WebViewClient());
+        webView.getSettings().setJavaScriptEnabled(true);
+        updateMap();
+    }
+
+    private void updateMap() {
+        String coordinates = coordinatesEditText.getText().toString();
+        if (coordinates.isEmpty()) return;
+
+        String[] parts = coordinates.split(",");
+        if (parts.length == 2) {
+            double latitude = Double.parseDouble(parts[0].trim());
+            double longitude = Double.parseDouble(parts[1].trim());
+            String url = "https://www.google.com/maps?q=" + latitude + "," + longitude + "&z=15&output=embed";
+            webView.loadUrl(url);
+        }
     }
 
     public interface OnSavePlaceClickListener {
         void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate);
     }
 }
+
+

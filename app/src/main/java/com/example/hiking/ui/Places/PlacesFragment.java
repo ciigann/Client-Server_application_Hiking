@@ -147,11 +147,14 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         if (places != null) {
             String[] parts = places.split(";");
             for (String part : parts) {
-                String name = extractEchoValue(part, "<name>", "<coordinates>");
-                String coordinates = extractEchoValue(part, "<coordinates>", "<description>");
-                String description = extractEchoValue(part, "<description>", "<private>");
-                String isPrivate = extractEchoValue(part, "<private>", "");
-                newPlaces.add("Место: " + name + " Координаты: " + coordinates + " Описание: " + description + " Приватность: " + isPrivate);
+                String[] placeAndTime = part.split("<time>");
+                if (placeAndTime.length == 2) {
+                    String place = placeAndTime[0].trim();
+                    String time = placeAndTime[1].trim();
+                    newPlaces.add("Место: " + place + " Время: " + time);
+                } else {
+                    newPlaces.add("" + part.trim());
+                }
             }
         }
         return newPlaces;
@@ -189,9 +192,9 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         String[] parts = place.split(" ");
         if (parts.length >= 2) {
             String placeName = parts[1]; // Предполагается, что место находятся во второй части строки
-            String coordinates = "coordinates_example"; // Замените на реальные координаты
-            String description = "description_example"; // Замените на реальное описание
-            boolean isPrivate = false; // Замените на реальное значение приватности
+            String coordinates = parts[3]; // Предполагается, что координаты находятся в четвертой части строки
+            String description = parts[5]; // Предполагается, что описание находится в шестой части строки
+            boolean isPrivate = Boolean.parseBoolean(parts[7]); // Предполагается, что приватность находится в восьмой части строки
 
             showEditPlaceDialog(placeName, coordinates, description, isPrivate);
         }
@@ -259,4 +262,5 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         }
     }
 }
+
 

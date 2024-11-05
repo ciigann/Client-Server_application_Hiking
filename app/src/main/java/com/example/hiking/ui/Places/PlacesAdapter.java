@@ -15,12 +15,12 @@ import java.util.List;
 
 public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlaceViewHolder> {
 
-    private List<String> places;
+    private List<String> placesList;
     private Context context;
     private OnPlaceClickListener onPlaceClickListener;
 
-    public PlacesAdapter(List<String> places, Context context, OnPlaceClickListener onPlaceClickListener) {
-        this.places = places;
+    public PlacesAdapter(List<String> placesList, Context context, OnPlaceClickListener onPlaceClickListener) {
+        this.placesList = placesList;
         this.context = context;
         this.onPlaceClickListener = onPlaceClickListener;
     }
@@ -34,19 +34,19 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlaceViewH
 
     @Override
     public void onBindViewHolder(@NonNull PlaceViewHolder holder, int position) {
-        String place = places.get(position);
+        String place = placesList.get(position);
         holder.placeTextView.setText(place);
         holder.itemView.setOnClickListener(v -> onPlaceClickListener.onPlaceClick(place));
     }
 
     @Override
     public int getItemCount() {
-        return places.size();
+        return placesList.size();
     }
 
     public void updatePlaces(List<String> newPlaces) {
-        places.clear();
-        places.addAll(newPlaces);
+        placesList.clear();
+        placesList.addAll(newPlaces);
         notifyDataSetChanged();
     }
 
@@ -63,4 +63,3 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlaceViewH
         void onPlaceClick(String place);
     }
 }
-

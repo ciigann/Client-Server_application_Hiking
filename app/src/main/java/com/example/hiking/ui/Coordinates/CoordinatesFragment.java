@@ -388,7 +388,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                                 if (currentPlacesList == null) {
                                     currentPlacesList = new ArrayList<>();
                                 }
-                                currentPlacesList.add(0, "Место: " + name);
+                                currentPlacesList.add(0, "Место: " + name + " Координаты: " + coordinates + " Описание: " + description + " Приватность: " + isPrivate);
                                 sharedViewModel.setPlaces(currentPlacesList);
                                 sharedViewModel.incrementSentPlacesNumber();
                             } else {
