@@ -147,14 +147,11 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         if (places != null) {
             String[] parts = places.split(";");
             for (String part : parts) {
-                String[] placeAndTime = part.split("<time>");
-                if (placeAndTime.length == 2) {
-                    String place = placeAndTime[0].trim();
-                    String time = placeAndTime[1].trim();
-                    newPlaces.add("Место: " + place + " Время: " + time);
-                } else {
-                    newPlaces.add("" + part.trim());
-                }
+                String name = extractEchoValue(part, "<name>", "<coordinates>");
+                String coordinates = extractEchoValue(part, "<coordinates>", "<description>");
+                String description = extractEchoValue(part, "<description>", "<private>");
+                String isPrivate = extractEchoValue(part, "<private>", "");
+                newPlaces.add("Место: " + name + " Координаты: " + coordinates + " Описание: " + description + " Приватность: " + isPrivate);
             }
         }
         return newPlaces;

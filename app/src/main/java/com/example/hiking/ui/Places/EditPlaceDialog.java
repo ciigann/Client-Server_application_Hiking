@@ -2,7 +2,6 @@ package com.example.hiking.ui.Places;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,7 +29,7 @@ public class EditPlaceDialog extends Dialog {
         coordinatesEditText = findViewById(R.id.coordinatesEditText);
         descriptionEditText = findViewById(R.id.descriptionEditText);
         privacySwitch = findViewById(R.id.privacySwitch);
-        saveButton = findViewById(R.id.saveButton);
+        saveButton = findViewById(R.id.editSaveButton);
 
         nameEditText.setText(name);
         coordinatesEditText.setText(coordinates);

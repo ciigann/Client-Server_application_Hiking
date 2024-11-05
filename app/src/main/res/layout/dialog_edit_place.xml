@@ -66,7 +66,7 @@
         android:text="Приватность" />
 
     <Button
-        android:id="@+id/saveButton"
+        android:id="@+id/editSaveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/privacySwitch"
