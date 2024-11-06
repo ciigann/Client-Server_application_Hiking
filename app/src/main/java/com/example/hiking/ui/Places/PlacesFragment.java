@@ -213,7 +213,7 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         }, new EditPlaceDialog.OnDeletePlaceClickListener() {
             @Override
             public void onDeletePlaceClick(String name) {
-                deletePlace(name);
+                sendDeletePlaceRequest(name);
             }
         });
         editPlaceDialog.show();
@@ -275,6 +275,62 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         }).start();
     }
 
+    private void sendDeletePlaceRequest(String name) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (client == null || client.isClosed()) {
+                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        outputStream = client.getOutputStream();
+                        inputStream = client.getInputStream();
+                    }
+                    String sessionId = sharedPreferences.getString("session_id", "");
+                    String request = "<delete_place>" + name + "<session_id>" + sessionId;
+                    outputStream.write(request.getBytes("UTF-8"));
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.contains("<delete_place>True")) {
+                                String responseSessionId = extractEchoValue(response, "<session_id>", "<session_id_end>");
+                                if (responseSessionId != null) {
+                                    if (responseSessionId.equals(sessionId)) {
+                                        Toast.makeText(requireContext(), "Место успешно удалено", Toast.LENGTH_SHORT).show();
+                                        deletePlaceFromList(name);
+                                    } else {
+                                        Toast.makeText(requireContext(), "Место не было удалено", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(requireContext(), "Место не было удалено", Toast.LENGTH_SHORT).show();
+                                }
+                            } else if (response.contains("<delete_place>False")) {
+                                String responseSessionId = extractEchoValue(response, "<session_id>", "<session_id_end>");
+                                if (responseSessionId != null) {
+                                    if (responseSessionId.equals(sessionId)) {
+                                        Toast.makeText(requireContext(), "Место не было удалено", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(requireContext(), "Место не было удалено", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Error connecting to server", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
     private void updatePlaceInList(String oldName, String newName, String newCoordinates, String newDescription, boolean newIsPrivate) {
         List<String> places = sharedViewModel.getPlacesLiveData().getValue();
         if (places != null) {
@@ -292,7 +348,7 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         }
     }
 
-    private void deletePlace(String name) {
+    private void deletePlaceFromList(String name) {
         List<String> places = sharedViewModel.getPlacesLiveData().getValue();
         if (places != null) {
             for (int i = 0; i < places.size(); i++) {
@@ -321,5 +377,6 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         }
     }
 }
+
 
 
