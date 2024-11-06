@@ -192,6 +192,9 @@ public class AccountFragment extends Fragment {
                                     }
                                     sharedViewModel.setCoordinates(coordinatesList);
                                 }
+
+                                // Ожидание второго echo с местами
+                                waitForPlacesEcho();
                             } else if (response.contains("<get>False")) {
                                 String echoEmail = extractEchoValue(response, "<email>", "<");
                                 if (email.equals(echoEmail)) {
@@ -220,11 +223,78 @@ public class AccountFragment extends Fragment {
         }).start();
     }
 
+    private void waitForPlacesEcho() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.startsWith("<get>")) {
+                                String sessionId = extractEchoValue(response, "<session_id>", "<session_id_end>");
+                                if (sessionId != null) {
+                                    List<String> places = parsePlacesResponse(response);
+                                    showPlacesReceivedMessage(places);
+                                } else {
+                                    Toast.makeText(requireContext(), "Failed to load places", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(requireContext(), "Failed to load places", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Error loading places", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private List<String> parsePlacesResponse(String response) {
+        List<String> places = new ArrayList<>();
+        String placesString = extractEchoValue(response, "<place>", "<place_end>");
+        if (placesString != null) {
+            String[] placeParts = placesString.split(";");
+            for (String placePart : placeParts) {
+                String[] placeDetails = placePart.split("<coordinates>");
+                if (placeDetails.length == 2) {
+                    String name = placeDetails[0].trim();
+                    String[] coordinatesDescriptionPrivacy = placeDetails[1].split("<description>");
+                    if (coordinatesDescriptionPrivacy.length == 2) {
+                        String coordinates = coordinatesDescriptionPrivacy[0].trim();
+                        String[] descriptionPrivacy = coordinatesDescriptionPrivacy[1].split("<privacy>");
+                        if (descriptionPrivacy.length == 2) {
+                            String description = descriptionPrivacy[0].trim();
+                            boolean isPrivate = Boolean.parseBoolean(descriptionPrivacy[1].trim());
+                            places.add("Место: " + name + " Координаты: " + coordinates + " Описание: " + description + " Приватность: " + isPrivate);
+                        }
+                    }
+                }
+            }
+        }
+        return places;
+    }
+
     private String extractEchoValue(String response, String startTag, String endTag) {
-        int startIndex = response.indexOf(startTag) + startTag.length();
-        int endIndex = response.indexOf(endTag, startIndex);
-        if (endIndex != -1) {
-            return response.substring(startIndex, endIndex);
+        int startIndex = response.indexOf(startTag);
+        if (startIndex != -1) {
+            int endIndex = response.indexOf(endTag, startIndex + startTag.length());
+            if (endIndex != -1) {
+                return response.substring(startIndex + startTag.length(), endIndex).trim();
+            } else {
+                return response.substring(startIndex + startTag.length()).trim();
+            }
         }
         return null;
     }
@@ -233,6 +303,14 @@ public class AccountFragment extends Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("session_id", sessionId);
         editor.apply();
+    }
+
+    private void showPlacesReceivedMessage(List<String> places) {
+        StringBuilder message = new StringBuilder("Места получены:\n");
+        for (String place : places) {
+            message.append(place).append("\n");
+        }
+        Toast.makeText(requireContext(), message.toString(), Toast.LENGTH_LONG).show();
     }
 
     private void sendCreateAccountRequest(final String email, final String password, final String name, final String surname, final String patronymic, final EditText emailEditText, final EditText passwordEditText) {
@@ -344,11 +422,3 @@ public class AccountFragment extends Fragment {
         }
     }
 }
-
-
-
-
-
-
-
-

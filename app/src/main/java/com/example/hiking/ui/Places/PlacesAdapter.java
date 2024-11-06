@@ -15,12 +15,12 @@ import java.util.List;
 
 public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlaceViewHolder> {
 
-    private List<String> placesList;
+    private List<String> places;
     private Context context;
     private OnPlaceClickListener onPlaceClickListener;
 
-    public PlacesAdapter(List<String> placesList, Context context, OnPlaceClickListener onPlaceClickListener) {
-        this.placesList = placesList;
+    public PlacesAdapter(List<String> places, Context context, OnPlaceClickListener onPlaceClickListener) {
+        this.places = places;
         this.context = context;
         this.onPlaceClickListener = onPlaceClickListener;
     }
@@ -34,20 +34,31 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlaceViewH
 
     @Override
     public void onBindViewHolder(@NonNull PlaceViewHolder holder, int position) {
-        String place = placesList.get(position);
+        String place = places.get(position);
         holder.placeTextView.setText(place);
-        holder.itemView.setOnClickListener(v -> onPlaceClickListener.onPlaceClick(place));
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (onPlaceClickListener != null) {
+                    onPlaceClickListener.onPlaceClick(place);
+                }
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return placesList.size();
+        return places.size();
     }
 
     public void updatePlaces(List<String> newPlaces) {
-        placesList.clear();
-        placesList.addAll(newPlaces);
+        places.clear();
+        places.addAll(newPlaces);
         notifyDataSetChanged();
+    }
+
+    public List<String> getPlaces() {
+        return null;
     }
 
     public static class PlaceViewHolder extends RecyclerView.ViewHolder {
