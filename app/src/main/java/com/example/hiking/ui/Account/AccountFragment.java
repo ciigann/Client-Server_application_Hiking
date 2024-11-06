@@ -246,9 +246,9 @@ public class AccountFragment extends Fragment {
                         @Override
                         public void run() {
                             if (response.startsWith("<get>")) {
-                                String sessionId = extractEchoValue(response, "<session_id>", "<session_id_end>");
-                                if (sessionId != null) {
-                                    List<String> places = parsePlacesResponse(response);
+                                String placesString = extractEchoValue(response, "<place>", "<place_end>");
+                                if (placesString != null) {
+                                    List<String> places = parsePlacesResponse(placesString);
                                     updatePlaces(places);
                                     showPlacesReceivedMessage(places);
                                 } else {
@@ -272,9 +272,8 @@ public class AccountFragment extends Fragment {
         }).start();
     }
 
-    private List<String> parsePlacesResponse(String response) {
+    private List<String> parsePlacesResponse(String placesString) {
         List<String> places = new ArrayList<>();
-        String placesString = extractEchoValue(response, "<place>", "<place_end>");
         if (placesString != null) {
             String[] placeParts = placesString.split(";");
             for (String placePart : placeParts) {
@@ -385,7 +384,6 @@ public class AccountFragment extends Fragment {
         }).start();
     }
 
-
     private void sendDeleteAccountRequest(final String email, final String password, final EditText emailEditText, final EditText passwordEditText) {
         new Thread(new Runnable() {
             @Override
@@ -445,6 +443,8 @@ public class AccountFragment extends Fragment {
         }
     }
 }
+
+
 
 
 
