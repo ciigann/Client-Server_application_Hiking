@@ -70,6 +70,11 @@ public class AccountFragment extends Fragment {
         emailEditText.setText(sharedPreferences.getString("email", ""));
         passwordEditText.setText(sharedPreferences.getString("password", ""));
 
+        // Загрузка сохраненных значений IP и порта
+        SERVER_IP = sharedPreferences.getString("server_ip", SERVER_IP);
+        SERVER_PORT = sharedPreferences.getInt("server_port", SERVER_PORT);
+        ipSwitch.setChecked(SERVER_IP.equals("192.168.43.145"));
+
         // Настройка RecyclerView для отображения мест
         RecyclerView recyclerView = binding.recyclerViewPlaces;
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -127,12 +132,17 @@ public class AccountFragment extends Fragment {
 
         ipSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                SERVER_IP = "192.168.43.145";
+                SERVER_IP = "192.168.43.145"; // локальное подключение
                 SERVER_PORT = 12348;
             } else {
-                SERVER_IP = "5.165.231.240";
+                SERVER_IP = "5.165.231.240"; // глобальное подключение
                 SERVER_PORT = 12345;
             }
+            // Сохранение значений IP и порта в SharedPreferences
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("server_ip", SERVER_IP);
+            editor.putInt("server_port", SERVER_PORT);
+            editor.apply();
         });
 
         return root;
@@ -157,8 +167,12 @@ public class AccountFragment extends Fragment {
             @Override
             public void run() {
                 try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = sharedPreferences.getString("server_ip", SERVER_IP);
+                    int serverPort = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        client = new Socket(serverIp, serverPort);
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
@@ -339,8 +353,12 @@ public class AccountFragment extends Fragment {
             @Override
             public void run() {
                 try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = sharedPreferences.getString("server_ip", SERVER_IP);
+                    int serverPort = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        client = new Socket(serverIp, serverPort);
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
@@ -389,8 +407,12 @@ public class AccountFragment extends Fragment {
             @Override
             public void run() {
                 try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = sharedPreferences.getString("server_ip", SERVER_IP);
+                    int serverPort = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        client = new Socket(serverIp, serverPort);
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }

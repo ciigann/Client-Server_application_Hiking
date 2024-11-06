@@ -64,6 +64,10 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
         sharedViewModel.setSessionId(sharedPreferences.getString("session_id", ""));
 
+        // Загрузка сохраненных значений IP и порта
+        SERVER_IP = sharedPreferences.getString("server_ip", SERVER_IP);
+        SERVER_PORT = sharedPreferences.getInt("server_port", SERVER_PORT);
+
         // Обработчик прокрутки для загрузки дополнительных мест
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -91,8 +95,12 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
             @Override
             public void run() {
                 try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = sharedPreferences.getString("server_ip", SERVER_IP);
+                    int serverPort = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        client = new Socket(serverIp, serverPort);
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
@@ -188,6 +196,9 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
     }
 
     private void stopAutomaticLocationUpdates() {
+        if (handler != null && runnable != null) {
+            handler.removeCallbacks(runnable);
+        }
     }
 
     @Override
@@ -224,8 +235,12 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
             @Override
             public void run() {
                 try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = sharedPreferences.getString("server_ip", SERVER_IP);
+                    int serverPort = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        client = new Socket(serverIp, serverPort);
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
@@ -280,8 +295,12 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
             @Override
             public void run() {
                 try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = sharedPreferences.getString("server_ip", SERVER_IP);
+                    int serverPort = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        client = new Socket(serverIp, serverPort);
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }

@@ -62,7 +62,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
 
         // Найти элементы UI
         Button sendButton = binding.sendButton;
-        Switch ipSwitch = binding.ipSwitch;
+        Switch ipSwitch = binding.automatically;
 
         // Инициализация SharedViewModel
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
@@ -84,6 +84,14 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         // Инициализация SharedPreferences
         sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
         sharedViewModel.setSessionId(sharedPreferences.getString("session_id", ""));
+
+        // Загрузка сохраненных значений IP и порта
+        SERVER_IP = sharedPreferences.getString("server_ip", SERVER_IP);
+        SERVER_PORT = sharedPreferences.getInt("server_port", SERVER_PORT);
+
+        // Загрузка состояния переключателя из SharedPreferences
+        boolean isLocalConnection = sharedPreferences.getBoolean("is_local_connection", false);
+        ipSwitch.setChecked(isLocalConnection);
 
         // Инициализация Handler и Runnable для автоматической отправки координат
         handler = new Handler();
@@ -130,6 +138,11 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                 SERVER_PORT = 12345;
                 stopAutomaticLocationUpdates();
             }
+            // Сохранение значений IP и порта в SharedPreferences
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("server_ip", SERVER_IP);
+            editor.putInt("server_port", SERVER_PORT);
+            editor.apply();
         });
 
         // Обработчик прокрутки для загрузки дополнительных координат
@@ -164,8 +177,12 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
             @Override
             public void run() {
                 try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = sharedPreferences.getString("server_ip", SERVER_IP);
+                    int serverPort = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        client = new Socket(serverIp, serverPort);
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
@@ -242,8 +259,12 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
             @Override
             public void run() {
                 try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = sharedPreferences.getString("server_ip", SERVER_IP);
+                    int serverPort = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        client = new Socket(serverIp, serverPort);
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
@@ -364,8 +385,12 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
             @Override
             public void run() {
                 try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = sharedPreferences.getString("server_ip", SERVER_IP);
+                    int serverPort = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     if (client == null || client.isClosed()) {
-                        client = new Socket(SERVER_IP, SERVER_PORT);
+                        client = new Socket(serverIp, serverPort);
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
@@ -422,3 +447,4 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         }
     }
 }
+

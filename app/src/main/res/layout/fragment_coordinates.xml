@@ -24,7 +24,7 @@
             android:text="Отправить координаты" />
 
         <Switch
-            android:id="@+id/ipSwitch"
+            android:id="@+id/automatically"
             android:layout_width="152dp"
             android:layout_height="match_parent"
             android:minHeight="48dp"
