@@ -58,7 +58,7 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlaceViewH
     }
 
     public List<String> getPlaces() {
-        return null;
+        return places;
     }
 
     public static class PlaceViewHolder extends RecyclerView.ViewHolder {
@@ -74,3 +74,5 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlaceViewH
         void onPlaceClick(String place);
     }
 }
+
+

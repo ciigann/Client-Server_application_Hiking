@@ -16,8 +16,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hiking.databinding.FragmentAccountBinding;
+import com.example.hiking.ui.Places.PlacesAdapter;
 import com.example.hiking.ui.SharedViewModel;
 
 import java.io.IOException;
@@ -36,6 +39,7 @@ public class AccountFragment extends Fragment {
     private Socket client;
     private OutputStream outputStream;
     private InputStream inputStream;
+    private PlacesAdapter placesAdapter;
 
     private String SERVER_IP = "5.165.231.240"; // глобальный IP-адрес
     private int SERVER_PORT = 12345;
@@ -65,6 +69,12 @@ public class AccountFragment extends Fragment {
         // Загрузка сохраненных данных
         emailEditText.setText(sharedPreferences.getString("email", ""));
         passwordEditText.setText(sharedPreferences.getString("password", ""));
+
+        // Настройка RecyclerView для отображения мест
+        RecyclerView recyclerView = binding.recyclerViewPlaces;
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        placesAdapter = new PlacesAdapter(new ArrayList<>(), requireContext(), null);
+        recyclerView.setAdapter(placesAdapter);
 
         // Обработчики событий для кнопок
         loginButton.setOnClickListener(v -> {
@@ -239,6 +249,7 @@ public class AccountFragment extends Fragment {
                                 String sessionId = extractEchoValue(response, "<session_id>", "<session_id_end>");
                                 if (sessionId != null) {
                                     List<String> places = parsePlacesResponse(response);
+                                    updatePlaces(places);
                                     showPlacesReceivedMessage(places);
                                 } else {
                                     Toast.makeText(requireContext(), "Failed to load places", Toast.LENGTH_SHORT).show();
@@ -305,6 +316,17 @@ public class AccountFragment extends Fragment {
         editor.apply();
     }
 
+    private void updatePlaces(List<String> newPlaces) {
+        List<String> currentPlaces = sharedViewModel.getPlacesLiveData().getValue();
+        if (currentPlaces == null) {
+            currentPlaces = new ArrayList<>();
+        }
+        currentPlaces.clear();
+        currentPlaces.addAll(newPlaces);
+        sharedViewModel.setPlaces(currentPlaces);
+        placesAdapter.updatePlaces(currentPlaces);
+    }
+
     private void showPlacesReceivedMessage(List<String> places) {
         StringBuilder message = new StringBuilder("Места получены:\n");
         for (String place : places) {
@@ -362,6 +384,7 @@ public class AccountFragment extends Fragment {
             }
         }).start();
     }
+
 
     private void sendDeleteAccountRequest(final String email, final String password, final EditText emailEditText, final EditText passwordEditText) {
         new Thread(new Runnable() {
@@ -422,3 +445,6 @@ public class AccountFragment extends Fragment {
         }
     }
 }
+
+
+
