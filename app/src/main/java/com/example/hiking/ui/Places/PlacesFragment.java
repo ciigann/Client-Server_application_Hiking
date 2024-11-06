@@ -210,6 +210,11 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
             public void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate) {
                 sendCorrectionPlaceRequest(placeName, coordinates, description, isPrivate, name, coordinates, description, isPrivate);
             }
+        }, new EditPlaceDialog.OnDeletePlaceClickListener() {
+            @Override
+            public void onDeletePlaceClick(String name) {
+                deletePlace(name);
+            }
         });
         editPlaceDialog.show();
     }
@@ -236,7 +241,6 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
                             if (response.contains("<correction_place>True")) {
                                 String responseSessionId = extractEchoValue(response, "<session_id>", "<session_id_end>");
                                 if (responseSessionId != null) {
-                                    Toast.makeText(requireContext(), "Полученный session_id: " + responseSessionId + "\nТекущий session_id: " + sessionId, Toast.LENGTH_LONG).show();
                                     if (responseSessionId.equals(sessionId)) {
                                         Toast.makeText(requireContext(), "Место успешно обновлено", Toast.LENGTH_SHORT).show();
                                         updatePlaceInList(oldName, newName, newCoordinates, newDescription, newIsPrivate);
@@ -249,7 +253,6 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
                             } else if (response.contains("<correction_place>False")) {
                                 String responseSessionId = extractEchoValue(response, "<session_id>", "<session_id_end>");
                                 if (responseSessionId != null) {
-                                    Toast.makeText(requireContext(), "Полученный session_id: " + responseSessionId + "\nТекущий session_id: " + sessionId, Toast.LENGTH_LONG).show();
                                     if (responseSessionId.equals(sessionId)) {
                                         Toast.makeText(requireContext(), "Место не было обновлено", Toast.LENGTH_SHORT).show();
                                     }
@@ -281,6 +284,22 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
                 if (parts.length >= 2 && parts[1].equals(oldName)) {
                     places.remove(i);
                     places.add("Место: " + newName + " Координаты: " + newCoordinates + " Описание: " + newDescription + " Приватность: " + newIsPrivate);
+                    sharedViewModel.setPlaces(places);
+                    placesAdapter.updatePlaces(places);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void deletePlace(String name) {
+        List<String> places = sharedViewModel.getPlacesLiveData().getValue();
+        if (places != null) {
+            for (int i = 0; i < places.size(); i++) {
+                String place = places.get(i);
+                String[] parts = place.split(" ");
+                if (parts.length >= 2 && parts[1].equals(name)) {
+                    places.remove(i);
                     sharedViewModel.setPlaces(places);
                     placesAdapter.updatePlaces(places);
                     break;

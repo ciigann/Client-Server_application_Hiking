@@ -26,9 +26,11 @@ public class EditPlaceDialog extends Dialog {
     private Switch privacySwitch;
     private Button saveButton;
     private WebView webView;
+    private Button deleteButton;
     private OnSavePlaceClickListener onSavePlaceClickListener;
+    private OnDeletePlaceClickListener onDeletePlaceClickListener;
 
-    public EditPlaceDialog(@NonNull Context context, String name, String coordinates, String description, boolean isPrivate, OnSavePlaceClickListener listener) {
+    public EditPlaceDialog(@NonNull Context context, String name, String coordinates, String description, boolean isPrivate, OnSavePlaceClickListener saveListener, OnDeletePlaceClickListener deleteListener) {
         super(context);
         setContentView(R.layout.dialog_edit_place);
 
@@ -39,6 +41,7 @@ public class EditPlaceDialog extends Dialog {
         privacySwitch = findViewById(R.id.privacySwitch);
         saveButton = findViewById(R.id.editSaveButton);
         webView = findViewById(R.id.webView);
+        deleteButton = findViewById(R.id.deleteButton);
         Button closeButton = findViewById(R.id.closeButton);
 
         // Установка начальных значений
@@ -47,8 +50,9 @@ public class EditPlaceDialog extends Dialog {
         descriptionEditText.setText(description);
         privacySwitch.setChecked(isPrivate);
 
-        // Установка слушателя
-        this.onSavePlaceClickListener = listener;
+        // Установка слушателей
+        this.onSavePlaceClickListener = saveListener;
+        this.onDeletePlaceClickListener = deleteListener;
 
         // Обработчик нажатия кнопки "Сохранить"
         saveButton.setOnClickListener(new View.OnClickListener() {
@@ -67,6 +71,17 @@ public class EditPlaceDialog extends Dialog {
                     }
                     dismiss();
                 }
+            }
+        });
+
+        // Обработчик нажатия кнопки "Удалить"
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (onDeletePlaceClickListener != null) {
+                    onDeletePlaceClickListener.onDeletePlaceClick(name);
+                }
+                dismiss();
             }
         });
 
@@ -113,7 +128,12 @@ public class EditPlaceDialog extends Dialog {
     public interface OnSavePlaceClickListener {
         void onSavePlaceClick(String name, String coordinates, String description, boolean isPrivate);
     }
+
+    public interface OnDeletePlaceClickListener {
+        void onDeletePlaceClick(String name);
+    }
 }
+
 
 
 

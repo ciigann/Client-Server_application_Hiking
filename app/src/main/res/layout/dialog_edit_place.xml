@@ -78,18 +78,11 @@
             android:hint="Координаты"
             android:minHeight="48dp" />
 
-        <WebView
-            android:id="@+id/webView"
-            android:layout_width="match_parent"
-            android:layout_height="450dp"
-            android:layout_below="@id/coordinatesEditText"
-            android:layout_marginTop="8dp" />
-
         <Switch
             android:id="@+id/privacySwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/webView"
+            android:layout_below="@id/coordinatesEditText"
             android:layout_marginTop="16dp"
             android:minHeight="48dp"
             android:text="Приватность" />
@@ -103,8 +96,25 @@
             android:layout_centerHorizontal="true"
             android:text="Сохранить" />
 
+        <WebView
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="450dp"
+            android:layout_below="@id/editSaveButton"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/webView"
+            android:layout_marginTop="16dp"
+            android:layout_centerHorizontal="true"
+            android:text="Удалить" />
+
     </RelativeLayout>
 </androidx.core.widget.NestedScrollView>
+
 
 
 
