@@ -73,7 +73,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         coordinatesAdapter = new CoordinatesAdapter(new ArrayList<>(), requireContext(), this);
         recyclerView.setAdapter(coordinatesAdapter);
 
-        // Наблюдение за изменениями данных в SharedViewModel
+        // Наблюдение за изменениями данных в SharedViewModel.
         sharedViewModel.getCoordinatesLiveData().observe(getViewLifecycleOwner(), coordinates -> {
             coordinatesAdapter.updateCoordinates(coordinates);
         });
