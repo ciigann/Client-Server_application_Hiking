@@ -273,7 +273,7 @@ public class AccountFragment extends Fragment {
                                 String globalPlacesString = extractEchoValue(response, "<globalplaces>", "<name_end>");
                                 if (globalPlacesString != null) {
                                     List<String> userNames = parseGlobalPlacesResponse(globalPlacesString);
-                                    showUserNames(userNames);
+                                    sharedViewModel.setGlobalUserNames(userNames);
                                 }
                             } else {
                                 Toast.makeText(requireContext(), "Failed to load places", Toast.LENGTH_SHORT).show();
@@ -367,14 +367,6 @@ public class AccountFragment extends Fragment {
         StringBuilder message = new StringBuilder("Места получены:\n");
         for (String place : places) {
             message.append(place).append("\n");
-        }
-        Toast.makeText(requireContext(), message.toString(), Toast.LENGTH_LONG).show();
-    }
-
-    private void showUserNames(List<String> userNames) {
-        StringBuilder message = new StringBuilder("Пользователи:\n");
-        for (String userName : userNames) {
-            message.append(userName).append("\n");
         }
         Toast.makeText(requireContext(), message.toString(), Toast.LENGTH_LONG).show();
     }
