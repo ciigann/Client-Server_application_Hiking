@@ -9,9 +9,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hiking.R;
 import com.example.hiking.databinding.FragmentGlobalPlacesBinding;
 import com.example.hiking.ui.SharedViewModel;
 
@@ -200,8 +202,17 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            Toast.makeText(requireContext(), "0", Toast.LENGTH_SHORT).show();
                             if (response.contains("<globalplaces_coordinates>True")) {
-                                Toast.makeText(requireContext(), "Места пользователя успешно получены", Toast.LENGTH_SHORT).show();
+                                String placesStr = extractEchoValue(response, "<places>", "<places_end>");
+                                Toast.makeText(requireContext(), placesStr+"1", Toast.LENGTH_SHORT).show();
+                                if (placesStr != null) {
+                                    List<String> places = parsePlacesResponse(placesStr);
+                                    sharedViewModel.setUserPlaces(places);
+                                    Navigation.findNavController(requireView()).navigate(R.id.nav_host_fragment_content_main);
+                                } else {
+                                    Toast.makeText(requireContext(), "Не удалось получить места пользователя", Toast.LENGTH_SHORT).show();
+                                }
                             } else {
                                 Toast.makeText(requireContext(), "Не удалось получить места пользователя", Toast.LENGTH_SHORT).show();
                             }
@@ -218,5 +229,23 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
                 }
             }
         }).start();
+    }
+
+    private List<String> parsePlacesResponse(String placesStr) {
+        List<String> places = new ArrayList<>();
+        String[] placeParts = placesStr.split(";");
+        for (String placePart : placeParts) {
+            String[] placeDetails = placePart.split("<coordinates>");
+            if (placeDetails.length == 2) {
+                String name = placeDetails[0].trim();
+                String[] coordsDescription = placeDetails[1].split("<description>");
+                if (coordsDescription.length == 2) {
+                    String coordinates = coordsDescription[0].trim();
+                    String description = coordsDescription[1].trim();
+                    places.add("Место: " + name + " Координаты: " + coordinates + " Описание: " + description);
+                }
+            }
+        }
+        return places;
     }
 }
