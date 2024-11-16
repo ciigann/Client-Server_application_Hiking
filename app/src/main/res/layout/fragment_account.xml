@@ -54,21 +54,21 @@
         android:visibility="gone" />
 
     <EditText
-        android:id="@+id/surnameEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:hint="Введите фамилию"
-        android:inputType="textPersonName"
-        android:minHeight="48dp"
-        android:visibility="gone" />
-
-    <EditText
         android:id="@+id/patronymicEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:hint="Введите отчество"
+        android:inputType="textPersonName"
+        android:minHeight="48dp"
+        android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/surnameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:hint="Введите фамилию"
         android:inputType="textPersonName"
         android:minHeight="48dp"
         android:visibility="gone" />
