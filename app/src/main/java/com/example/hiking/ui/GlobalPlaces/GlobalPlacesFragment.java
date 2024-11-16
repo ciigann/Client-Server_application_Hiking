@@ -22,7 +22,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GlobalPlacesFragment extends Fragment {
+public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapter.OnUserClickListener {
 
     private FragmentGlobalPlacesBinding binding;
     private GlobalPlacesAdapter globalPlacesAdapter;
@@ -46,7 +46,7 @@ public class GlobalPlacesFragment extends Fragment {
         // Настройка RecyclerView для отображения имен пользователей
         RecyclerView recyclerView = binding.recyclerViewGlobalPlaces;
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        globalPlacesAdapter = new GlobalPlacesAdapter(new ArrayList<>(), requireContext());
+        globalPlacesAdapter = new GlobalPlacesAdapter(new ArrayList<>(), requireContext(), this);
         recyclerView.setAdapter(globalPlacesAdapter);
 
         // Наблюдение за изменениями данных в SharedViewModel
@@ -144,7 +144,7 @@ public class GlobalPlacesFragment extends Fragment {
                 if (userDetails.length == 2) {
                     String email = userDetails[0].trim();
                     String name = userDetails[1].trim();
-                    newUserNames.add(name);
+                    newUserNames.add(name + "," + email); // Сохраняем имя и почту в одной строке
                 }
             }
         }
@@ -171,5 +171,52 @@ public class GlobalPlacesFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onUserClick(String email) {
+        sendGlobalPlacesCoordinatesRequest(email);
+    }
+
+    private void sendGlobalPlacesCoordinatesRequest(final String email) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Извлечение значений IP и порта из SharedPreferences
+                    String serverIp = SERVER_IP;
+                    int serverPort = SERVER_PORT;
+
+                    if (client == null || client.isClosed()) {
+                        client = new Socket(serverIp, serverPort);
+                        outputStream = client.getOutputStream();
+                        inputStream = client.getInputStream();
+                    }
+                    String request = "<globalplaces_coordinates>" + email;
+                    outputStream.write(request.getBytes("UTF-8"));
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = inputStream.read(buffer);
+                    final String response = new String(buffer, 0, bytesRead, "UTF-8");
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.contains("<globalplaces_coordinates>True")) {
+                                Toast.makeText(requireContext(), "Места пользователя успешно получены", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(requireContext(), "Не удалось получить места пользователя", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(requireContext(), "Error connecting to server", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 }

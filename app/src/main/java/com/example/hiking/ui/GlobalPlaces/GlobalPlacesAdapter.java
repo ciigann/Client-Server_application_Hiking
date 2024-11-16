@@ -17,22 +17,37 @@ public class GlobalPlacesAdapter extends RecyclerView.Adapter<GlobalPlacesAdapte
 
     private List<String> userNames;
     private Context context;
+    private OnUserClickListener onUserClickListener;
 
-    public GlobalPlacesAdapter(List<String> userNames, Context context) {
+    public GlobalPlacesAdapter(List<String> userNames, Context context, OnUserClickListener onUserClickListener) {
         this.userNames = userNames;
         this.context = context;
+        this.onUserClickListener = onUserClickListener;
     }
 
     @NonNull
     @Override
     public GlobalPlaceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_place, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_global_place, parent, false);
         return new GlobalPlaceViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull GlobalPlaceViewHolder holder, int position) {
-        holder.placeTextView.setText(userNames.get(position));
+        String userData = userNames.get(position);
+        String[] userDetails = userData.split(",");
+        if (userDetails.length == 2) {
+            holder.userNameTextView.setText(userDetails[0]);
+            holder.userEmailTextView.setText(userDetails[1]); // Невидимый атрибут
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (onUserClickListener != null) {
+                        onUserClickListener.onUserClick(userDetails[1]); // Передаем почту
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -46,12 +61,18 @@ public class GlobalPlacesAdapter extends RecyclerView.Adapter<GlobalPlacesAdapte
         notifyDataSetChanged();
     }
 
+    public interface OnUserClickListener {
+        void onUserClick(String email);
+    }
+
     static class GlobalPlaceViewHolder extends RecyclerView.ViewHolder {
-        TextView placeTextView;
+        TextView userNameTextView;
+        TextView userEmailTextView;
 
         public GlobalPlaceViewHolder(@NonNull View itemView) {
             super(itemView);
-            placeTextView = itemView.findViewById(R.id.placeTextView);
+            userNameTextView = itemView.findViewById(R.id.userNameTextView);
+            userEmailTextView = itemView.findViewById(R.id.userEmailTextView);
         }
     }
 }

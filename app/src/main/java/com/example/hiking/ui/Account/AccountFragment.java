@@ -219,6 +219,13 @@ public class AccountFragment extends Fragment {
 
                                 // Ожидание второго echo с местами
                                 waitForPlacesEcho();
+
+                                // Извлечение имен пользователей из ответа
+                                String globalPlacesString = extractEchoValue(response, "<globalplaces>", "<name_end>");
+                                if (globalPlacesString != null) {
+                                    List<String> userNames = parseGlobalPlacesResponse(globalPlacesString);
+                                    sharedViewModel.setGlobalUserNames(userNames);
+                                }
                             } else if (response.contains("<get>False")) {
                                 String echoEmail = extractEchoValue(response, "<email>", "<");
                                 if (email.equals(echoEmail)) {
@@ -326,7 +333,7 @@ public class AccountFragment extends Fragment {
                 if (userDetails.length == 2) {
                     String email = userDetails[0].trim();
                     String name = userDetails[1].trim();
-                    userNames.add(name);
+                    userNames.add(name + "," + email); // Сохраняем имя и почту в одной строке
                 }
             }
         }

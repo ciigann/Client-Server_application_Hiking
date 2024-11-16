@@ -89,5 +89,4 @@ public class SharedViewModel extends ViewModel {
     public void incrementLoadedGlobalPlacesNumber() {
         loadedGlobalPlacesNumber++;
     }
-
 }
