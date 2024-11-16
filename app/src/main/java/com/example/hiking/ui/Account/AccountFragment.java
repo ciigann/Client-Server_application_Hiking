@@ -268,6 +268,13 @@ public class AccountFragment extends Fragment {
                                 } else {
                                     Toast.makeText(requireContext(), "Failed to load places", Toast.LENGTH_SHORT).show();
                                 }
+
+                                // Обработка второй части echo
+                                String globalPlacesString = extractEchoValue(response, "<globalplaces>", "<name_end>");
+                                if (globalPlacesString != null) {
+                                    List<String> userNames = parseGlobalPlacesResponse(globalPlacesString);
+                                    showUserNames(userNames);
+                                }
                             } else {
                                 Toast.makeText(requireContext(), "Failed to load places", Toast.LENGTH_SHORT).show();
                             }
@@ -310,6 +317,22 @@ public class AccountFragment extends Fragment {
         return places;
     }
 
+    private List<String> parseGlobalPlacesResponse(String globalPlacesString) {
+        List<String> userNames = new ArrayList<>();
+        if (globalPlacesString != null) {
+            String[] userParts = globalPlacesString.split(";");
+            for (String userPart : userParts) {
+                String[] userDetails = userPart.split(",");
+                if (userDetails.length == 2) {
+                    String email = userDetails[0].trim();
+                    String name = userDetails[1].trim();
+                    userNames.add(name);
+                }
+            }
+        }
+        return userNames;
+    }
+
     private String extractEchoValue(String response, String startTag, String endTag) {
         int startIndex = response.indexOf(startTag);
         if (startIndex != -1) {
@@ -344,6 +367,14 @@ public class AccountFragment extends Fragment {
         StringBuilder message = new StringBuilder("Места получены:\n");
         for (String place : places) {
             message.append(place).append("\n");
+        }
+        Toast.makeText(requireContext(), message.toString(), Toast.LENGTH_LONG).show();
+    }
+
+    private void showUserNames(List<String> userNames) {
+        StringBuilder message = new StringBuilder("Пользователи:\n");
+        for (String userName : userNames) {
+            message.append(userName).append("\n");
         }
         Toast.makeText(requireContext(), message.toString(), Toast.LENGTH_LONG).show();
     }
@@ -465,8 +496,3 @@ public class AccountFragment extends Fragment {
         }
     }
 }
-
-
-
-
-
