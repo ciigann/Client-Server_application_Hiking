@@ -16,6 +16,7 @@ public class SharedViewModel extends ViewModel {
     private int sentCoordinatesNumber = 0;
     private int loadedPlacesNumber = 2;
     private int sentPlacesNumber = 0;
+    private int loadedGlobalPlacesNumber = 2;
 
     public LiveData<List<String>> getCoordinatesLiveData() {
         return coordinatesLiveData;
@@ -80,4 +81,13 @@ public class SharedViewModel extends ViewModel {
     public void incrementSentPlacesNumber() {
         sentPlacesNumber++;
     }
+
+    public int getLoadedGlobalPlacesNumber() {
+        return loadedGlobalPlacesNumber;
+    }
+
+    public void incrementLoadedGlobalPlacesNumber() {
+        loadedGlobalPlacesNumber++;
+    }
+
 }
