@@ -151,14 +151,6 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
         return newUserNames;
     }
 
-    private String extractEchoValue(String response, String startTag, String endTag) {
-        int startIndex = response.indexOf(startTag);
-        int endIndex = response.indexOf(endTag, startIndex + startTag.length());
-        if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
-            return response.substring(startIndex + startTag.length(), endIndex).trim();
-        }
-        return null;
-    }
 
     @Override
     public void onDestroyView() {
@@ -202,7 +194,8 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
                         public void run() {
                             if (response.contains("<globalplaces_coordinates>True")) {
                                 Toast.makeText(requireContext(), "Места пользователя успешно получены", Toast.LENGTH_SHORT).show();
-                                openUserCoordinatesDialog();
+                                String placesData = extractEchoValue(response, "<places>", "<places_end>");
+                                openUserPlacesDialog(placesData);
                             } else {
                                 Toast.makeText(requireContext(), "Не удалось получить места пользователя", Toast.LENGTH_SHORT).show();
                             }
@@ -221,9 +214,21 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
         }).start();
     }
 
-    private void openUserCoordinatesDialog() {
-        UserCoordinatesDialogFragment dialogFragment = new UserCoordinatesDialogFragment();
-        dialogFragment.show(requireActivity().getSupportFragmentManager(), "UserCoordinatesDialogFragment");
+    private void openUserPlacesDialog(String placesData) {
+        UserPlacesDialogFragment dialogFragment = new UserPlacesDialogFragment();
+        Bundle args = new Bundle();
+        args.putString("placesData", placesData);
+        dialogFragment.setArguments(args);
+        dialogFragment.show(requireActivity().getSupportFragmentManager(), "UserPlacesDialogFragment");
+    }
+
+    private String extractEchoValue(String response, String startTag, String endTag) {
+        int startIndex = response.indexOf(startTag);
+        int endIndex = response.indexOf(endTag);
+        if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
+            return response.substring(startIndex + startTag.length(), endIndex).trim();
+        }
+        return null;
     }
 
 
