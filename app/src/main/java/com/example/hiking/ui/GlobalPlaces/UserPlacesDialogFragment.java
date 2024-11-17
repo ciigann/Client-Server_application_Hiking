@@ -148,15 +148,15 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (response.contains("<more_globalplaces_coordinates>False<email>" + userEmail)) {
-                                Toast.makeText(requireContext(), "Все места загружены в ленту", Toast.LENGTH_SHORT).show();
-                            } else if (response.contains("<more_globalplaces_coordinates>True<email>" + userEmail)) {
+                            if (response.contains("<more_globalplaces_coordinates>True<email>" + userEmail)) {
                                 String placesData = extractEchoValue(response, "<places>", "<places_end>");
                                 List<String> newPlaces = parsePlacesData(placesData);
-                                List<String> currentPlacesList = adapter.getPlaces();
+                                List<String> currentPlacesList = new ArrayList<>(adapter.getPlaces());
                                 currentPlacesList.addAll(newPlaces);
                                 adapter.updatePlaces(currentPlacesList);
                                 sharedViewModel.incrementLoadedUserGlobalPlacesNumber();
+                            } else {
+                                Toast.makeText(requireContext(), "Все места загружены в ленту", Toast.LENGTH_SHORT).show();
                             }
                             isLoading = false;
                         }
@@ -174,6 +174,8 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
             }
         }).start();
     }
+
+
 
     private String extractEchoValue(String response, String startTag, String endTag) {
         int startIndex = response.indexOf(startTag);
