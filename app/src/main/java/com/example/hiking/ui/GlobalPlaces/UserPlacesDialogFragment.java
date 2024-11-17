@@ -1,6 +1,8 @@
 package com.example.hiking.ui.GlobalPlaces;
 
 import android.app.Dialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hiking.R;
+import com.example.hiking.databinding.FragmentGlobalPlacesBinding;
 import com.example.hiking.ui.SharedViewModel;
 
 import java.io.IOException;
@@ -27,6 +30,9 @@ import java.util.List;
 
 public class UserPlacesDialogFragment extends DialogFragment implements UserPlacesAdapter.OnPlaceClickListener {
 
+    private FragmentGlobalPlacesBinding binding;
+    private UserPlacesAdapter userPlacesAdapter;
+    private SharedPreferences sharedPreferences;
     private RecyclerView recyclerView;
     private UserPlacesAdapter adapter;
     private SharedViewModel sharedViewModel;
@@ -50,6 +56,27 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_user_places, container, false);
+
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+
+        binding = FragmentGlobalPlacesBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+
+        // Настройка RecyclerView для отображения имен пользователей
+        RecyclerView recyclerView = binding.recyclerViewGlobalPlaces;
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        userPlacesAdapter = new UserPlacesAdapter(new ArrayList<>(), requireContext(), this);
+        recyclerView.setAdapter(userPlacesAdapter);
+
+
+        // Инициализация SharedPreferences
+        sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
+        sharedViewModel.setSessionId(sharedPreferences.getString("session_id", ""));
+
+        // Загрузка сохраненных значений IP и порта
+        SERVER_IP = sharedPreferences.getString("server_ip", SERVER_IP);
+        SERVER_PORT = sharedPreferences.getInt("server_port", SERVER_PORT);
+
 
         Button closeButton = view.findViewById(R.id.closeButton);
         closeButton.setOnClickListener(v -> {
@@ -130,6 +157,15 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
             @Override
             public void run() {
                 try {
+
+                    // Инициализация SharedPreferences
+                    sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
+                    sharedViewModel.setSessionId(sharedPreferences.getString("session_id", ""));
+
+                    // Загрузка сохраненных значений IP и порта
+                    SERVER_IP = sharedPreferences.getString("server_ip", SERVER_IP);
+                    SERVER_PORT = sharedPreferences.getInt("server_port", SERVER_PORT);
+
                     // Извлечение значений IP и порта из SharedPreferences
                     String serverIp = SERVER_IP;
                     int serverPort = SERVER_PORT;

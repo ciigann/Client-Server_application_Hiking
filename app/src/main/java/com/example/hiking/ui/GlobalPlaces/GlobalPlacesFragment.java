@@ -1,5 +1,7 @@
 package com.example.hiking.ui.GlobalPlaces;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +31,7 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
     private SharedViewModel sharedViewModel;
     private Socket client;
     private OutputStream outputStream;
+    private SharedPreferences sharedPreferences;
     private InputStream inputStream;
     private String SERVER_IP = "5.165.229.88"; // глобальный IP-адрес
     private int SERVER_PORT = 12345;
@@ -53,6 +56,14 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
         sharedViewModel.getGlobalUserNamesLiveData().observe(getViewLifecycleOwner(), userNames -> {
             globalPlacesAdapter.updateUserNames(userNames);
         });
+
+        // Инициализация SharedPreferences
+        sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
+        sharedViewModel.setSessionId(sharedPreferences.getString("session_id", ""));
+
+        // Загрузка сохраненных значений IP и порта
+        SERVER_IP = sharedPreferences.getString("server_ip", SERVER_IP);
+        SERVER_PORT = sharedPreferences.getInt("server_port", SERVER_PORT);
 
         // Обработчик прокрутки для загрузки дополнительных имен пользователей
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {

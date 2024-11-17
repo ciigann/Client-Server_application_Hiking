@@ -53,7 +53,6 @@ public class UserPlacesAdapter extends RecyclerView.Adapter<UserPlacesAdapter.Pl
         notifyDataSetChanged();
     }
 
-
     public List<String> getPlaces() {
         return places;
     }
