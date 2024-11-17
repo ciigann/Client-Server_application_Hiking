@@ -30,7 +30,7 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
     private Socket client;
     private OutputStream outputStream;
     private InputStream inputStream;
-    private String SERVER_IP = "5.165.231.240"; // глобальный IP-адрес
+    private String SERVER_IP = "5.165.229.88"; // глобальный IP-адрес
     private int SERVER_PORT = 12345;
     private boolean isLoading = false;
 

@@ -41,7 +41,7 @@ public class AccountFragment extends Fragment {
     private InputStream inputStream;
     private PlacesAdapter placesAdapter;
 
-    private String SERVER_IP = "5.165.231.240"; // глобальный IP-адрес
+    private String SERVER_IP = "5.165.229.88"; // глобальный IP-адрес
     private int SERVER_PORT = 12345;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -135,7 +135,7 @@ public class AccountFragment extends Fragment {
                 SERVER_IP = "192.168.43.145"; // локальное подключение
                 SERVER_PORT = 12348;
             } else {
-                SERVER_IP = "5.165.231.240"; // глобальное подключение
+                SERVER_IP = "5.165.229.88"; // глобальное подключение
                 SERVER_PORT = 12345;
             }
             // Сохранение значений IP и порта в SharedPreferences

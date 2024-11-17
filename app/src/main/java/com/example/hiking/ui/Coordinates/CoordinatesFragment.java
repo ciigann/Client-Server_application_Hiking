@@ -46,7 +46,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     private Socket client;
     private OutputStream outputStream;
     private InputStream inputStream;
-    private String SERVER_IP = "5.165.231.240"; // глобальный IP-адрес
+    private String SERVER_IP = "5.165.229.88"; // глобальный IP-адрес
     private int SERVER_PORT = 12345;
     private SharedPreferences sharedPreferences;
     private String currentCoordinates;
@@ -134,7 +134,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                 SERVER_PORT = 12348;
                 startAutomaticLocationUpdates();
             } else {
-                SERVER_IP = "5.165.231.240";
+                SERVER_IP = "5.165.229.88";
                 SERVER_PORT = 12345;
                 stopAutomaticLocationUpdates();
             }
