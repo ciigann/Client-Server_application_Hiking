@@ -28,11 +28,7 @@
         android:name="com.example.hiking.ui.GlobalPlaces.GlobalPlacesFragment"
         android:label="Места пользователей"
         tools:layout="@layout/fragment_global_places" />
-    <fragment
-        android:id="@+id/nav_user_coordinates"
-        android:name="com.example.hiking.ui.GlobalPlaces.UserCoordinatesFragment"
-        android:label="Координаты пользователя"
-        tools:layout="@layout/fragment_user_coordinates" />
+
 
 
 </navigation>
