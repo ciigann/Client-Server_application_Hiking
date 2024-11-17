@@ -98,4 +98,8 @@ public class SharedViewModel extends ViewModel {
     public void incrementLoadedUserGlobalPlacesNumber() {
         loadedUserGlobalPlacesNumber++;
     }
+
+    public void resetLoadedUserGlobalPlacesNumber() {
+        loadedUserGlobalPlacesNumber = 2;
+    }
 }

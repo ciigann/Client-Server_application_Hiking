@@ -17,9 +17,12 @@ public class UserPlacesAdapter extends RecyclerView.Adapter<UserPlacesAdapter.Pl
 
     private List<String> places;
     private Context context;
+    private OnPlaceClickListener onPlaceClickListener;
 
-    public UserPlacesAdapter(List<String> places) {
+    public UserPlacesAdapter(List<String> places, Context context, OnPlaceClickListener onPlaceClickListener) {
         this.places = places;
+        this.context = context;
+        this.onPlaceClickListener = onPlaceClickListener;
     }
 
     @NonNull
@@ -32,6 +35,11 @@ public class UserPlacesAdapter extends RecyclerView.Adapter<UserPlacesAdapter.Pl
     @Override
     public void onBindViewHolder(@NonNull PlaceViewHolder holder, int position) {
         holder.placeTextView.setText(places.get(position));
+        holder.itemView.setOnClickListener(v -> {
+            if (onPlaceClickListener != null) {
+                onPlaceClickListener.onPlaceClick(places.get(position));
+            }
+        });
     }
 
     @Override
@@ -40,7 +48,6 @@ public class UserPlacesAdapter extends RecyclerView.Adapter<UserPlacesAdapter.Pl
     }
 
     public void updatePlaces(List<String> newPlaces) {
-        places.clear();
         places.addAll(newPlaces);
         notifyDataSetChanged();
     }
@@ -56,5 +63,9 @@ public class UserPlacesAdapter extends RecyclerView.Adapter<UserPlacesAdapter.Pl
             super(itemView);
             placeTextView = itemView.findViewById(R.id.placeTextView);
         }
+    }
+
+    public interface OnPlaceClickListener {
+        void onPlaceClick(String place);
     }
 }
