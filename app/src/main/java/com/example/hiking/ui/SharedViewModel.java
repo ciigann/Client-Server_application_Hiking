@@ -11,13 +11,13 @@ public class SharedViewModel extends ViewModel {
     private MutableLiveData<List<String>> coordinatesLiveData = new MutableLiveData<>();
     private MutableLiveData<List<String>> placesLiveData = new MutableLiveData<>();
     private MutableLiveData<List<String>> globalUserNamesLiveData = new MutableLiveData<>();
-    private MutableLiveData<List<String>> userPlacesLiveData = new MutableLiveData<>();
     private String sessionId;
     private int loadedCoordinatesNumber = 2;
     private int sentCoordinatesNumber = 0;
     private int loadedPlacesNumber = 2;
     private int sentPlacesNumber = 0;
     private int loadedGlobalPlacesNumber = 2;
+    private int loadedUserGlobalPlacesNumber = 2;
 
     public LiveData<List<String>> getCoordinatesLiveData() {
         return coordinatesLiveData;
@@ -31,10 +31,6 @@ public class SharedViewModel extends ViewModel {
         return globalUserNamesLiveData;
     }
 
-    public LiveData<List<String>> getUserPlacesLiveData() {
-        return userPlacesLiveData;
-    }
-
     public void setCoordinates(List<String> coordinates) {
         coordinatesLiveData.setValue(coordinates);
     }
@@ -45,10 +41,6 @@ public class SharedViewModel extends ViewModel {
 
     public void setGlobalUserNames(List<String> userNames) {
         globalUserNamesLiveData.setValue(userNames);
-    }
-
-    public void setUserPlaces(List<String> places) {
-        userPlacesLiveData.setValue(places);
     }
 
     public String getSessionId() {
@@ -97,5 +89,13 @@ public class SharedViewModel extends ViewModel {
 
     public void incrementLoadedGlobalPlacesNumber() {
         loadedGlobalPlacesNumber++;
+    }
+
+    public int getLoadedUserGlobalPlacesNumber() {
+        return loadedUserGlobalPlacesNumber;
+    }
+
+    public void incrementLoadedUserGlobalPlacesNumber() {
+        loadedUserGlobalPlacesNumber++;
     }
 }

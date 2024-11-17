@@ -195,7 +195,7 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
                             if (response.contains("<globalplaces_coordinates>True")) {
                                 Toast.makeText(requireContext(), "Места пользователя успешно получены", Toast.LENGTH_SHORT).show();
                                 String placesData = extractEchoValue(response, "<places>", "<places_end>");
-                                openUserPlacesDialog(placesData);
+                                openUserPlacesDialog(placesData, email);
                             } else {
                                 Toast.makeText(requireContext(), "Не удалось получить места пользователя", Toast.LENGTH_SHORT).show();
                             }
@@ -214,10 +214,11 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
         }).start();
     }
 
-    private void openUserPlacesDialog(String placesData) {
+    private void openUserPlacesDialog(String placesData, String userEmail) {
         UserPlacesDialogFragment dialogFragment = new UserPlacesDialogFragment();
         Bundle args = new Bundle();
         args.putString("placesData", placesData);
+        args.putString("userEmail", userEmail);
         dialogFragment.setArguments(args);
         dialogFragment.show(requireActivity().getSupportFragmentManager(), "UserPlacesDialogFragment");
     }
@@ -230,6 +231,7 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
         }
         return null;
     }
+
 
 
 

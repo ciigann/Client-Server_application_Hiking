@@ -39,6 +39,16 @@ public class UserPlacesAdapter extends RecyclerView.Adapter<UserPlacesAdapter.Pl
         return places.size();
     }
 
+    public void updatePlaces(List<String> newPlaces) {
+        places.clear();
+        places.addAll(newPlaces);
+        notifyDataSetChanged();
+    }
+
+    public List<String> getPlaces() {
+        return places;
+    }
+
     public static class PlaceViewHolder extends RecyclerView.ViewHolder {
         TextView placeTextView;
 

@@ -36,10 +36,7 @@ public class UserPlacesFragment extends Fragment implements PlacesAdapter.OnPlac
         placesAdapter = new PlacesAdapter(new ArrayList<>(), requireContext(), this);
         recyclerView.setAdapter(placesAdapter);
 
-        // Наблюдение за изменениями данных в SharedViewModel
-        sharedViewModel.getUserPlacesLiveData().observe(getViewLifecycleOwner(), places -> {
-            placesAdapter.updatePlaces(places);
-        });
+
 
         return root;
     }
