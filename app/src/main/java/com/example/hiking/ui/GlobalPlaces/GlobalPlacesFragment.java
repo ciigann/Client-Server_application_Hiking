@@ -9,11 +9,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.hiking.R;
 import com.example.hiking.databinding.FragmentGlobalPlacesBinding;
 import com.example.hiking.ui.SharedViewModel;
 
@@ -202,17 +200,9 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(requireContext(), "0", Toast.LENGTH_SHORT).show();
                             if (response.contains("<globalplaces_coordinates>True")) {
-                                String placesStr = extractEchoValue(response, "<places>", "<places_end>");
-                                Toast.makeText(requireContext(), placesStr+"1", Toast.LENGTH_SHORT).show();
-                                if (placesStr != null) {
-                                    List<String> places = parsePlacesResponse(placesStr);
-                                    sharedViewModel.setUserPlaces(places);
-                                    Navigation.findNavController(requireView()).navigate(R.id.nav_host_fragment_content_main);
-                                } else {
-                                    Toast.makeText(requireContext(), "Не удалось получить места пользователя", Toast.LENGTH_SHORT).show();
-                                }
+                                Toast.makeText(requireContext(), "Места пользователя успешно получены", Toast.LENGTH_SHORT).show();
+                                openUserCoordinatesDialog();
                             } else {
                                 Toast.makeText(requireContext(), "Не удалось получить места пользователя", Toast.LENGTH_SHORT).show();
                             }
@@ -230,6 +220,13 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
             }
         }).start();
     }
+
+    private void openUserCoordinatesDialog() {
+        UserCoordinatesDialogFragment dialogFragment = new UserCoordinatesDialogFragment();
+        dialogFragment.show(requireActivity().getSupportFragmentManager(), "UserCoordinatesDialogFragment");
+    }
+
+
 
     private List<String> parsePlacesResponse(String placesStr) {
         List<String> places = new ArrayList<>();
