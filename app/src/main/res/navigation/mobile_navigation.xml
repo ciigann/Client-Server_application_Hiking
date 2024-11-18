@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -29,6 +28,9 @@
         android:label="Места пользователей"
         tools:layout="@layout/fragment_global_places" />
 
-
-
+    <fragment
+        android:id="@+id/nav_tracker"
+        android:name="com.example.hiking.ui.Tracker.TrackerFragment"
+        android:label="Трекер"
+        tools:layout="@layout/fragment_tracker" />
 </navigation>

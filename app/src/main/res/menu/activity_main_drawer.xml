@@ -1,25 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools"
-tools:showIn="navigation_view">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
 
-<group android:checkableBehavior="single">
-    <item
-        android:id="@+id/nav_account"
-        android:icon="@drawable/ic_menu_coordinates"
-        android:title="Аккаунт" />
-    <item
-        android:id="@+id/nav_coordinates"
-        android:icon="@drawable/ic_menu_coordinates"
-        android:title="Координаты" />
-    <item
-        android:id="@+id/nav_places"
-        android:icon="@drawable/ic_menu_places"
-        android:title="Места" />
-    <item
-        android:id="@+id/nav_global_places"
-        android:icon="@drawable/ic_menu_globalplaces"
-        android:title="Места пользователей" />
-</group>
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_account"
+            android:icon="@drawable/ic_menu_coordinates"
+            android:title="Аккаунт" />
+        <item
+            android:id="@+id/nav_coordinates"
+            android:icon="@drawable/ic_menu_coordinates"
+            android:title="Координаты" />
+        <item
+            android:id="@+id/nav_places"
+            android:icon="@drawable/ic_menu_places"
+            android:title="Места" />
+        <item
+            android:id="@+id/nav_global_places"
+            android:icon="@drawable/ic_menu_globalplaces"
+            android:title="Места пользователей" />
+        <item
+            android:id="@+id/nav_tracker"
+            android:icon="@drawable/ic_menu_globalplaces"
+            android:title="Трекер" />
+    </group>
 </menu>
-
