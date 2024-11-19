@@ -71,7 +71,7 @@ public class TrackerFragment extends Fragment {
             @Override
             public void onSuccess(Location location) {
                 if (location != null) {
-                    showCoordinates(location);
+                    showCoordinatesOnMap(location);
                 } else {
                     Log.e(TAG, "Location not available");
                     Toast.makeText(requireContext(), "Location not available", Toast.LENGTH_SHORT).show();
@@ -86,9 +86,11 @@ public class TrackerFragment extends Fragment {
         });
     }
 
-    private void showCoordinates(Location location) {
-        String coordinates = "Latitude: " + location.getLatitude() + ", Longitude: " + location.getLongitude();
-        Toast.makeText(requireContext(), coordinates, Toast.LENGTH_LONG).show();
+    private void showCoordinatesOnMap(Location location) {
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        TrackerMapDialog mapDialog = TrackerMapDialog.newInstance(latitude, longitude);
+        mapDialog.show(getParentFragmentManager(), "TrackerMapDialog");
     }
 
     @Override
