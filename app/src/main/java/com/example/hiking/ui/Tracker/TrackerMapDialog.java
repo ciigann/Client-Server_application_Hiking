@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
@@ -12,16 +14,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.hiking.R;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-public class TrackerMapDialog extends DialogFragment implements OnMapReadyCallback {
+public class TrackerMapDialog extends DialogFragment {
 
-    private GoogleMap mMap;
     private double latitude;
     private double longitude;
 
@@ -59,17 +54,11 @@ public class TrackerMapDialog extends DialogFragment implements OnMapReadyCallba
         Button closeButton = view.findViewById(R.id.closeButton);
         closeButton.setOnClickListener(v -> dismiss());
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        WebView webView = view.findViewById(R.id.webView);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.setWebViewClient(new WebViewClient());
+        webView.loadUrl("https://www.google.com/maps/search/?api=1&query=" + latitude + "," + longitude);
 
         return view;
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        LatLng coordinates = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(coordinates).title("Your Location"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinates, 15));
     }
 }
