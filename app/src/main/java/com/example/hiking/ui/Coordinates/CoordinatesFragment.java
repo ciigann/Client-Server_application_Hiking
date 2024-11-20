@@ -114,8 +114,8 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
 
         // Настройка LocationRequest
         locationRequest = LocationRequest.create();
-        locationRequest.setInterval(5000); // Интервал обновления местоположения
-        locationRequest.setFastestInterval(2000); // Минимальный интервал обновления
+        locationRequest.setInterval(10000); // Интервал обновления местоположения
+        locationRequest.setFastestInterval(5000); // Минимальный интервал обновления
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); // Приоритет точности
 
         // Настройка LocationCallback
@@ -247,6 +247,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                     byte[] buffer = new byte[1024];
                     int bytesRead = inputStream.read(buffer);
                     final String response = new String(buffer, 0, bytesRead, "UTF-8");
+
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
