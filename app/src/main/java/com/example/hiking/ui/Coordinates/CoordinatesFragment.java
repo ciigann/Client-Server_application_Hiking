@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,6 +22,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.hiking.R;
 import com.example.hiking.databinding.FragmentCoordinatesBinding;
 import com.example.hiking.ui.SharedViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -54,6 +56,15 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     private boolean isLoading = false;
     private Handler handler;
     private Runnable runnable;
+    private TextView averageSpeedTextView;
+    private TextView distanceTextView;
+    private TextView timeDistanceTextView;
+    private double totalDistance = 0.0;
+    private long startTime = 0;
+    private long endTime = 0;
+    private double averageSpeed = 0.0;
+    private Location lastLocation;
+    private boolean isAutomaticModeEnabled = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -63,6 +74,9 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         // Найти элементы UI
         Button sendButton = binding.sendButton;
         Switch ipSwitch = binding.automatically;
+        averageSpeedTextView = root.findViewById(R.id.averageSpeedTextView);
+        distanceTextView = root.findViewById(R.id.distanceTextView);
+        timeDistanceTextView = root.findViewById(R.id.timeDistanceTextView);
 
         // Инициализация SharedViewModel
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
@@ -73,7 +87,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         coordinatesAdapter = new CoordinatesAdapter(new ArrayList<>(), requireContext(), this);
         recyclerView.setAdapter(coordinatesAdapter);
 
-        // Наблюдение за изменениями данных в SharedViewModel.
+        // Наблюдение за изменениями данных в SharedViewModel
         sharedViewModel.getCoordinatesLiveData().observe(getViewLifecycleOwner(), coordinates -> {
             coordinatesAdapter.updateCoordinates(coordinates);
         });
@@ -99,7 +113,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
             @Override
             public void run() {
                 sendLocationAutomatically();
-                handler.postDelayed(this, 60000); // Повторять каждую минуту
+                handler.postDelayed(this, 10000); // Повторять каждые 10 секунд
             }
         };
 
@@ -133,10 +147,21 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                 SERVER_IP = "192.168.43.145";
                 SERVER_PORT = 12348;
                 startAutomaticLocationUpdates();
+                averageSpeedTextView.setVisibility(View.VISIBLE);
+                distanceTextView.setVisibility(View.VISIBLE);
+                timeDistanceTextView.setVisibility(View.VISIBLE);
+                startTime = System.currentTimeMillis();
+                isAutomaticModeEnabled = true;
             } else {
                 SERVER_IP = "5.165.229.88";
                 SERVER_PORT = 12345;
                 stopAutomaticLocationUpdates();
+                averageSpeedTextView.setVisibility(View.GONE);
+                distanceTextView.setVisibility(View.GONE);
+                timeDistanceTextView.setVisibility(View.GONE);
+                totalDistance = 0.0;
+                averageSpeed = 0.0;
+                isAutomaticModeEnabled = false;
             }
             // Сохранение значений IP и порта в SharedPreferences
             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -239,6 +264,20 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                     String sessionId = sharedPreferences.getString("session_id", "");
                     String coordinates = "<location>" + latitude + "," + longitude + "<session_id>" + sessionId + "<time>" + currentTime;
                     sendLocation(coordinates);
+
+                    // Calculate distance and update UI
+                    if (lastLocation != null) {
+                        float[] results = new float[1];
+                        Location.distanceBetween(lastLocation.getLatitude(), lastLocation.getLongitude(), latitude, longitude, results);
+                        double distance = results[0];
+                        totalDistance += distance;
+                        long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
+                        averageSpeed = totalDistance / elapsedTime; // speed in m/s
+                        averageSpeedTextView.setText("Средняя скорость: " + String.format("%.2f", averageSpeed * 3.6) + " км/ч");
+                        distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistance) + " м за время: " + elapsedTime + " с");
+                        timeDistanceTextView.setText("За 10 секунд пройдено: " + String.format("%.2f", distance) + " м");
+                    }
+                    lastLocation = location;
                 } else {
                     Toast.makeText(requireContext(), "Location not available", Toast.LENGTH_SHORT).show();
                 }
@@ -352,7 +391,9 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         } catch (IOException e) {
             e.printStackTrace();
         }
-        stopAutomaticLocationUpdates();
+        if (!isAutomaticModeEnabled) {
+            stopAutomaticLocationUpdates();
+        }
     }
 
     @Override
@@ -447,4 +488,3 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         }
     }
 }
-

@@ -35,6 +35,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
     implementation(libs.play.services.maps)
     implementation(libs.play.services.location)
     implementation(libs.appcompat)
