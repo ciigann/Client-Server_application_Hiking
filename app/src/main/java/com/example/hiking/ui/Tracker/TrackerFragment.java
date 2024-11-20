@@ -1,6 +1,8 @@
 package com.example.hiking.ui.Tracker;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -9,7 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +36,7 @@ public class TrackerFragment extends Fragment {
     private static final String TAG = "TrackerFragment";
     private FragmentTrackerBinding binding;
     private FusedLocationProviderClient fusedLocationClient;
-    private Button startTrackingButton;
+    private Switch startTrackingSwitch;
     private TextView averageSpeedTextView;
     private TextView distanceTextView;
     private TextView timeDistanceTextView;
@@ -42,6 +44,12 @@ public class TrackerFragment extends Fragment {
     private double totalDistance;
     private Handler handler;
     private Runnable runnable;
+    private SharedPreferences sharedPreferences;
+
+    private static final String PREFS_NAME = "TrackerPrefs";
+    private static final String KEY_AVERAGE_SPEED = "average_speed";
+    private static final String KEY_DISTANCE = "distance";
+    private static final String KEY_TIME_DISTANCE = "time_distance";
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -51,23 +59,32 @@ public class TrackerFragment extends Fragment {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
 
-        startTrackingButton = root.findViewById(R.id.startTrackingButton);
+        startTrackingSwitch = root.findViewById(R.id.startTrackingSwitch);
         averageSpeedTextView = root.findViewById(R.id.averageSpeedTextView);
         distanceTextView = root.findViewById(R.id.distanceTextView);
         timeDistanceTextView = root.findViewById(R.id.timeDistanceTextView);
+
+        sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
+        // Восстановить сохраненные значения
+        restoreSavedValues();
 
         // Установите видимость всех элементов изначально
         averageSpeedTextView.setVisibility(View.VISIBLE);
         distanceTextView.setVisibility(View.VISIBLE);
         timeDistanceTextView.setVisibility(View.VISIBLE);
 
-        startTrackingButton.setOnClickListener(v -> {
-            if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-                return;
+        startTrackingSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                        ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+                    return;
+                }
+                startTracking();
+            } else {
+                stopTracking();
             }
-            startTracking();
         });
 
         handler = new Handler();
@@ -75,7 +92,7 @@ public class TrackerFragment extends Fragment {
             @Override
             public void run() {
                 getLocation();
-                handler.postDelayed(this, 3000); // Повторять каждые три секунды
+                handler.postDelayed(this, 5000); // Повторять каждые пять секунд
             }
         };
 
@@ -93,6 +110,15 @@ public class TrackerFragment extends Fragment {
         totalDistance = 0;
         lastLocation = null;
         handler.post(runnable);
+    }
+
+    private void stopTracking() {
+        handler.removeCallbacks(runnable);
+        totalDistance = 0;
+        lastLocation = null;
+        updateDistanceTextView();
+        updateTimeDistanceTextView(0);
+        restoreInitialTexts();
     }
 
     private void getLocation() {
@@ -135,7 +161,11 @@ public class TrackerFragment extends Fragment {
 
     private void updateTimeDistanceTextView(double distance) {
         String currentTime = getCurrentTime();
-        timeDistanceTextView.setText("Время: " + currentTime + " Расстояние: " + String.format("%.3f", distance) + " км");
+        if (distance == 0) {
+            timeDistanceTextView.setText("Время: " + currentTime + " Расстояние: 0.000 км");
+        } else {
+            timeDistanceTextView.setText("Время: " + currentTime + " Расстояние: " + String.format("%.3f", distance) + " км");
+        }
     }
 
     private String getCurrentTime() {
@@ -143,10 +173,31 @@ public class TrackerFragment extends Fragment {
         return dateFormat.format(new Date());
     }
 
+    private void restoreInitialTexts() {
+        averageSpeedTextView.setText(sharedPreferences.getString(KEY_AVERAGE_SPEED, "Средняя скорость: "));
+        distanceTextView.setText(sharedPreferences.getString(KEY_DISTANCE, "Расстояние: "));
+        timeDistanceTextView.setText(sharedPreferences.getString(KEY_TIME_DISTANCE, "Время: Расстояние: "));
+    }
+
+    private void saveCurrentValues() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(KEY_AVERAGE_SPEED, averageSpeedTextView.getText().toString());
+        editor.putString(KEY_DISTANCE, distanceTextView.getText().toString());
+        editor.putString(KEY_TIME_DISTANCE, timeDistanceTextView.getText().toString());
+        editor.apply();
+    }
+
+    private void restoreSavedValues() {
+        averageSpeedTextView.setText(sharedPreferences.getString(KEY_AVERAGE_SPEED, "Средняя скорость: "));
+        distanceTextView.setText(sharedPreferences.getString(KEY_DISTANCE, "Расстояние: "));
+        timeDistanceTextView.setText(sharedPreferences.getString(KEY_TIME_DISTANCE, "Время: Расстояние: "));
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
         handler.removeCallbacks(runnable);
+        saveCurrentValues();
     }
 }

@@ -3,11 +3,11 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <Button
-        android:id="@+id/startTrackingButton"
+    <Switch
+        android:id="@+id/startTrackingSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Запустить отслеживание"
+        android:text="Запустить отслеживание:"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp" />
 
@@ -16,7 +16,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Средняя скорость: "
-        android:layout_below="@id/startTrackingButton"
+        android:layout_below="@id/startTrackingSwitch"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         android:visibility="visible" />
