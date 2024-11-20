@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,7 +22,6 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 
 public class TrackerFragment extends Fragment {
 
@@ -33,12 +31,7 @@ public class TrackerFragment extends Fragment {
     private Button startTrackingButton;
     private TextView averageSpeedTextView;
     private TextView distanceTextView;
-    private Location lastLocation;
-    private double totalDistance;
-    private Handler handler;
-    private Runnable runnable;
 
-    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentTrackerBinding.inflate(inflater, container, false);
@@ -63,15 +56,6 @@ public class TrackerFragment extends Fragment {
             startTracking();
         });
 
-        handler = new Handler();
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                getLocation();
-                handler.postDelayed(this, 1000); // Повторять каждую секунду
-            }
-        };
-
         return root;
     }
 
@@ -83,30 +67,11 @@ public class TrackerFragment extends Fragment {
             return;
         }
 
-        totalDistance = 0;
-        lastLocation = null;
-        handler.post(runnable);
-    }
-
-    private void getLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "Location permissions not granted");
-            Toast.makeText(requireContext(), "Location permissions not granted", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Task<Location> locationTask = fusedLocationClient.getLastLocation();
-        locationTask.addOnSuccessListener(requireActivity(), new OnSuccessListener<Location>() {
+        fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
                 if (location != null) {
-                    if (lastLocation != null) {
-                        double distance = lastLocation.distanceTo(location);
-                        totalDistance += distance;
-                        updateDistanceTextView();
-                    }
-                    lastLocation = location;
+                    showCoordinates(location);
                 } else {
                     Log.e(TAG, "Location not available");
                     Toast.makeText(requireContext(), "Location not available", Toast.LENGTH_SHORT).show();
@@ -121,14 +86,14 @@ public class TrackerFragment extends Fragment {
         });
     }
 
-    private void updateDistanceTextView() {
-        distanceTextView.setText("Расстояние: " + String.format("%.2f", totalDistance) + " м");
+    private void showCoordinates(Location location) {
+        String coordinates = "Latitude: " + location.getLatitude() + ", Longitude: " + location.getLongitude();
+        Toast.makeText(requireContext(), coordinates, Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-        handler.removeCallbacks(runnable);
     }
 }
