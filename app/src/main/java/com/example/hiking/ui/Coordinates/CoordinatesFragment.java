@@ -26,7 +26,10 @@ import com.example.hiking.R;
 import com.example.hiking.databinding.FragmentCoordinatesBinding;
 import com.example.hiking.ui.SharedViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.IOException;
@@ -65,6 +68,8 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     private double averageSpeed = 0.0;
     private Location lastLocation;
     private boolean isAutomaticModeEnabled = false;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -106,6 +111,33 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         // Загрузка состояния переключателя из SharedPreferences
         boolean isLocalConnection = sharedPreferences.getBoolean("is_local_connection", false);
         ipSwitch.setChecked(isLocalConnection);
+
+        // Настройка LocationRequest
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(5000); // Интервал обновления местоположения
+        locationRequest.setFastestInterval(2000); // Минимальный интервал обновления
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); // Приоритет точности
+
+        // Настройка LocationCallback
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
+                        double latitude = location.getLatitude();
+                        double longitude = location.getLongitude();
+                        currentCoordinates = latitude + "," + longitude;
+                        currentTime = getCurrentTime();
+                        String sessionId = sharedPreferences.getString("session_id", "");
+                        String coordinates = "<location>" + latitude + "," + longitude + "<session_id>" + sessionId + "<time>" + currentTime;
+                        sendLocation(coordinates);
+                    }
+                }
+            }
+        };
 
         // Инициализация Handler и Runnable для автоматической отправки координат
         handler = new Handler();
@@ -286,10 +318,17 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     }
 
     private void startAutomaticLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            return;
+        }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
         handler.post(runnable);
     }
 
     private void stopAutomaticLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback);
         handler.removeCallbacks(runnable);
     }
 
