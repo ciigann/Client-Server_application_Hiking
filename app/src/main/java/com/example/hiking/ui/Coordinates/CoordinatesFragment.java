@@ -127,7 +127,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                     Location location = locationResult.getLastLocation();
                     if (location != null) {
                         lastFiveLocations.add(location);
-                        if (lastFiveLocations.size() > 5) {
+                        if (lastFiveLocations.size() > 10) {
                             lastFiveLocations.remove(0);
                         }
                     }
@@ -277,7 +277,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     }
 
     private void sendLocationAutomatically() {
-        if (lastFiveLocations.size() < 5) {
+        if (lastFiveLocations.size() < 10) {
             return; // Not enough locations collected yet
         }
 
@@ -296,17 +296,39 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         averageLatitude = Math.round(averageLatitude * 1e4) / 1e4;
         averageLongitude = Math.round(averageLongitude * 1e4) / 1e4;
 
-        currentCoordinates = averageLatitude + "," + averageLongitude;
-        currentTime = getCurrentTime();
-        String sessionId = sharedPreferences.getString("session_id", "");
-        String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
-        sendLocation(coordinates);
+        // Извлечение последней координаты из списка координат в SharedViewModel
+        List<String> currentCoordinatesList = sharedViewModel.getCoordinatesLiveData().getValue();
+        Location lastCoordinate = null;
+        if (currentCoordinatesList != null && !currentCoordinatesList.isEmpty()) {
+            String lastCoordinateString = currentCoordinatesList.get(currentCoordinatesList.size() - 1);
+            String[] parts = lastCoordinateString.split(" ");
+            if (parts.length >= 2) {
+                String[] coords = parts[1].split(",");
+                if (coords.length == 2) {
+                    lastCoordinate = new Location("");
+                    lastCoordinate.setLatitude(Double.parseDouble(coords[0]));
+                    lastCoordinate.setLongitude(Double.parseDouble(coords[1]));
+                }
+            }
+        }
 
         // Calculate distance and update UI
-        if (lastLocation != null) {
+        if (lastCoordinate != null) {
             float[] results = new float[1];
-            Location.distanceBetween(lastLocation.getLatitude(), lastLocation.getLongitude(), averageLatitude, averageLongitude, results);
+            Location.distanceBetween(lastCoordinate.getLatitude(), lastCoordinate.getLongitude(), averageLatitude, averageLongitude, results);
             double distance = results[0];
+
+            // Игнорировать значения distance меньше 13 метров
+            if (distance < 13) {
+                distance = 0.00;
+            } else {
+                currentCoordinates = averageLatitude + "," + averageLongitude;
+                currentTime = getCurrentTime();
+                String sessionId = sharedPreferences.getString("session_id", "");
+                String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
+                sendLocation(coordinates);
+            }
+
             totalDistance += distance;
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
             averageSpeed = totalDistance / elapsedTime; // speed in m/s
