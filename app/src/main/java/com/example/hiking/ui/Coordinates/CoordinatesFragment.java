@@ -71,6 +71,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private List<Location> lastFiveLocations = new ArrayList<>();
+    private int flag = 1;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -295,19 +296,31 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         // Округление до 4 знаков после запятой
         averageLatitude = Math.round(averageLatitude * 1e4) / 1e4;
         averageLongitude = Math.round(averageLongitude * 1e4) / 1e4;
-
-        currentCoordinates = averageLatitude + "," + averageLongitude;
-        currentTime = getCurrentTime();
-        String sessionId = sharedPreferences.getString("session_id", "");
-        String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
-        sendLocation(coordinates);
-
+        if (flag == 1){
+            currentCoordinates = averageLatitude + "," + averageLongitude;
+            currentTime = getCurrentTime();
+            String sessionId = sharedPreferences.getString("session_id", "");
+            String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
+            sendLocation(coordinates);
+        }
         // Calculate distance and update UI
         if (lastLocation != null) {
             float[] results = new float[1];
             Location.distanceBetween(lastLocation.getLatitude(), lastLocation.getLongitude(), averageLatitude, averageLongitude, results);
             double distance = results[0];
-            totalDistance += distance;
+
+            if (distance < 13) {
+                distance = 0.00;
+            } else {
+                currentCoordinates = averageLatitude + "," + averageLongitude;
+                currentTime = getCurrentTime();
+                String sessionId = sharedPreferences.getString("session_id", "");
+                String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
+                sendLocation(coordinates);
+
+            }
+
+                totalDistance += distance;
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
             averageSpeed = totalDistance / elapsedTime; // speed in m/s
             averageSpeedTextView.setText("Средняя скорость: " + String.format("%.2f", averageSpeed * 3.6) + " км/ч");
