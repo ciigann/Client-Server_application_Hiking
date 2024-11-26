@@ -70,6 +70,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     private boolean isAutomaticModeEnabled = false;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
+    private List<Location> lastFiveLocations = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -114,14 +115,23 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
 
         // Настройка LocationRequest
         locationRequest = LocationRequest.create();
-        locationRequest.setInterval(10000); // Интервал обновления местоположения
-        locationRequest.setFastestInterval(5000); // Минимальный интервал обновления
+        locationRequest.setInterval(2000); // Интервал обновления местоположения
+        locationRequest.setFastestInterval(1000); // Минимальный интервал обновления
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); // Приоритет точности
 
         // Настройка LocationCallback
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
+                if (locationResult != null) {
+                    Location location = locationResult.getLastLocation();
+                    if (location != null) {
+                        lastFiveLocations.add(location);
+                        if (lastFiveLocations.size() > 5) {
+                            lastFiveLocations.remove(0);
+                        }
+                    }
+                }
             }
         };
 
@@ -267,41 +277,46 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
     }
 
     private void sendLocationAutomatically() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-            return;
+        if (lastFiveLocations.size() < 5) {
+            return; // Not enough locations collected yet
         }
-        fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    double latitude = location.getLatitude();
-                    double longitude = location.getLongitude();
-                    currentCoordinates = latitude + "," + longitude;
-                    currentTime = getCurrentTime();
-                    String sessionId = sharedPreferences.getString("session_id", "");
-                    String coordinates = "<location>" + latitude + "," + longitude + "<session_id>" + sessionId + "<time>" + currentTime;
-                    sendLocation(coordinates);
 
-                    // Calculate distance and update UI
-                    if (lastLocation != null) {
-                        float[] results = new float[1];
-                        Location.distanceBetween(lastLocation.getLatitude(), lastLocation.getLongitude(), latitude, longitude, results);
-                        double distance = results[0];
-                        totalDistance += distance;
-                        long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
-                        averageSpeed = totalDistance / elapsedTime; // speed in m/s
-                        averageSpeedTextView.setText("Средняя скорость: " + String.format("%.2f", averageSpeed * 3.6) + " км/ч");
-                        distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistance) + " м за время: " + elapsedTime + " с");
-                        timeDistanceTextView.setText("За 10 секунд пройдено: " + String.format("%.2f", distance) + " м");
-                    }
-                    lastLocation = location;
-                } else {
-                    Toast.makeText(requireContext(), "Location not available", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        double totalLatitude = 0;
+        double totalLongitude = 0;
+
+        for (Location location : lastFiveLocations) {
+            totalLatitude += Math.round(location.getLatitude() * 1e4) / 1e4;
+            totalLongitude += Math.round(location.getLongitude() * 1e4) / 1e4;
+        }
+
+        double averageLatitude = totalLatitude / lastFiveLocations.size();
+        double averageLongitude = totalLongitude / lastFiveLocations.size();
+
+        // Округление до 4 знаков после запятой
+        averageLatitude = Math.round(averageLatitude * 1e4) / 1e4;
+        averageLongitude = Math.round(averageLongitude * 1e4) / 1e4;
+
+        currentCoordinates = averageLatitude + "," + averageLongitude;
+        currentTime = getCurrentTime();
+        String sessionId = sharedPreferences.getString("session_id", "");
+        String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
+        sendLocation(coordinates);
+
+        // Calculate distance and update UI
+        if (lastLocation != null) {
+            float[] results = new float[1];
+            Location.distanceBetween(lastLocation.getLatitude(), lastLocation.getLongitude(), averageLatitude, averageLongitude, results);
+            double distance = results[0];
+            totalDistance += distance;
+            long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
+            averageSpeed = totalDistance / elapsedTime; // speed in m/s
+            averageSpeedTextView.setText("Средняя скорость: " + String.format("%.2f", averageSpeed * 3.6) + " км/ч");
+            distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistance) + " м за время: " + elapsedTime + " с");
+            timeDistanceTextView.setText("За 10 секунд пройдено: " + String.format("%.2f", distance) + " м");
+        }
+        lastLocation = new Location("");
+        lastLocation.setLatitude(averageLatitude);
+        lastLocation.setLongitude(averageLongitude);
     }
 
     private void startAutomaticLocationUpdates() {
