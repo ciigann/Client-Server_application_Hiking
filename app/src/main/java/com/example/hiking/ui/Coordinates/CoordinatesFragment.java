@@ -122,20 +122,6 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-                for (Location location : locationResult.getLocations()) {
-                    if (location != null) {
-                        double latitude = location.getLatitude();
-                        double longitude = location.getLongitude();
-                        currentCoordinates = latitude + "," + longitude;
-                        currentTime = getCurrentTime();
-                        String sessionId = sharedPreferences.getString("session_id", "");
-                        String coordinates = "<location>" + latitude + "," + longitude + "<session_id>" + sessionId + "<time>" + currentTime;
-                        sendLocation(coordinates);
-                    }
-                }
             }
         };
 
