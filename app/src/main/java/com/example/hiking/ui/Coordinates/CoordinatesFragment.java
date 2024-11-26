@@ -296,41 +296,61 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         // Округление до 4 знаков после запятой
         averageLatitude = Math.round(averageLatitude * 1e4) / 1e4;
         averageLongitude = Math.round(averageLongitude * 1e4) / 1e4;
-        if (flag == 1){
-            currentCoordinates = averageLatitude + "," + averageLongitude;
-            currentTime = getCurrentTime();
-            String sessionId = sharedPreferences.getString("session_id", "");
-            String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
-            sendLocation(coordinates);
-        }
-        // Calculate distance and update UI
-        if (lastLocation != null) {
-            float[] results = new float[1];
-            Location.distanceBetween(lastLocation.getLatitude(), lastLocation.getLongitude(), averageLatitude, averageLongitude, results);
-            double distance = results[0];
 
-            if (distance < 13) {
-                distance = 0.00;
-            } else {
-                currentCoordinates = averageLatitude + "," + averageLongitude;
-                currentTime = getCurrentTime();
-                String sessionId = sharedPreferences.getString("session_id", "");
-                String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
-                sendLocation(coordinates);
+        // Извлечение последних координат из списка координат
+        List<String> coordinatesList = sharedViewModel.getCoordinatesLiveData().getValue();
+        if (coordinatesList != null && !coordinatesList.isEmpty()) {
+            String lastCoordinates = coordinatesList.get(0); // Предполагается, что последние координаты находятся в начале списка
+            String[] parts = lastCoordinates.split(" ");
+            if (parts.length >= 2) {
+                String coords = parts[1]; // Предполагается, что координаты находятся во второй части строки
+                String[] latLng = coords.split(",");
+                if (latLng.length == 2) {
+                    double lastLatitude = Double.parseDouble(latLng[0]);
+                    double lastLongitude = Double.parseDouble(latLng[1]);
 
+                    // Calculate distance and update UI
+                    if (lastLocation != null) {
+                        float[] results = new float[1];
+                        Location.distanceBetween(lastLatitude, lastLongitude, averageLatitude, averageLongitude, results);
+                        double distance = results[0]/10;
+
+                        if (distance < 2) {
+                            distance = 0.00;
+                        } else {
+                            currentCoordinates = averageLatitude + "," + averageLongitude;
+                            currentTime = getCurrentTime();
+                            String sessionId = sharedPreferences.getString("session_id", "");
+                            String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
+                            sendLocation(coordinates);
+                        }
+
+                        totalDistance += distance;
+                        long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
+                        averageSpeed = totalDistance / elapsedTime; // speed in m/s
+                        // Вычисляем количество часов
+                        int hours = (int) (elapsedTime / 3600);
+
+                        // Вычисляем количество оставшихся минут
+                        int minutes = (int) ((elapsedTime % 3600) / 60);
+
+                        // Вычисляем количество оставшихся секунд
+                        int seconds = (int) (elapsedTime % 60);
+                        // Форматируем строку вывода
+                        String formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+
+                        averageSpeedTextView.setText("Средняя скорость: " + String.format("%.2f", averageSpeed * 3.6) + " км/ч");
+                        distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistance) + " м за время: " + formattedTime);
+                        timeDistanceTextView.setText("За 10 секунд пройдено: " + String.format("%.2f", distance) + " м");
+                    }
+                    lastLocation = new Location("");
+                    lastLocation.setLatitude(averageLatitude);
+                    lastLocation.setLongitude(averageLongitude);
+                }
             }
-
-                totalDistance += distance;
-            long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
-            averageSpeed = totalDistance / elapsedTime; // speed in m/s
-            averageSpeedTextView.setText("Средняя скорость: " + String.format("%.2f", averageSpeed * 3.6) + " км/ч");
-            distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistance) + " м за время: " + elapsedTime + " с");
-            timeDistanceTextView.setText("За 10 секунд пройдено: " + String.format("%.2f", distance) + " м");
         }
-        lastLocation = new Location("");
-        lastLocation.setLatitude(averageLatitude);
-        lastLocation.setLongitude(averageLongitude);
     }
+
 
     private void startAutomaticLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -542,3 +562,4 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         }
     }
 }
+
