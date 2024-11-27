@@ -191,11 +191,18 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                 totalDistance = 0.0;
                 averageSpeed = 0.0;
                 isAutomaticModeEnabled = false;
+
+                // Сброс значений переменных
+                lastFiveLocations.clear();
+                lastLocation = null;
+                startTime = 0;
+                endTime = 0;
             }
             // Сохранение значений IP и порта в SharedPreferences
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("server_ip", SERVER_IP);
             editor.putInt("server_port", SERVER_PORT);
+            editor.putBoolean("is_local_connection", isChecked);
             editor.apply();
         });
 
@@ -313,9 +320,9 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                     if (lastLocation != null) {
                         float[] results = new float[1];
                         Location.distanceBetween(lastLatitude, lastLongitude, averageLatitude, averageLongitude, results);
-                        double distance = results[0]/10;
+                        double distance = results[0];
 
-                        if (distance < 2) {
+                        if (distance < 13) {
                             distance = 0.00;
                         } else {
                             currentCoordinates = averageLatitude + "," + averageLongitude;
@@ -328,19 +335,8 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                         totalDistance += distance;
                         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
                         averageSpeed = totalDistance / elapsedTime; // speed in m/s
-                        // Вычисляем количество часов
-                        int hours = (int) (elapsedTime / 3600);
-
-                        // Вычисляем количество оставшихся минут
-                        int minutes = (int) ((elapsedTime % 3600) / 60);
-
-                        // Вычисляем количество оставшихся секунд
-                        int seconds = (int) (elapsedTime % 60);
-                        // Форматируем строку вывода
-                        String formattedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-
                         averageSpeedTextView.setText("Средняя скорость: " + String.format("%.2f", averageSpeed * 3.6) + " км/ч");
-                        distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistance) + " м за время: " + formattedTime);
+                        distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistance) + " м за время: " + elapsedTime + " с");
                         timeDistanceTextView.setText("За 10 секунд пройдено: " + String.format("%.2f", distance) + " м");
                     }
                     lastLocation = new Location("");
@@ -350,7 +346,6 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
             }
         }
     }
-
 
     private void startAutomaticLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -562,4 +557,3 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         }
     }
 }
-
