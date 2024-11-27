@@ -55,6 +55,7 @@ public class AccountFragment extends Fragment {
         // Найти элементы UI
         EditText emailEditText = binding.emailEditText;
         EditText passwordEditText = binding.passwordEditText;
+        EditText confirmPasswordEditText = binding.confirmPasswordEditText;
         EditText nameEditText = binding.nameEditText;
         EditText surnameEditText = binding.surnameEditText;
         EditText patronymicEditText = binding.patronymicEditText;
@@ -94,6 +95,7 @@ public class AccountFragment extends Fragment {
         createAccountButton.setOnClickListener(v -> {
             String email = emailEditText.getText().toString();
             String password = passwordEditText.getText().toString();
+            String confirmPassword = confirmPasswordEditText.getText().toString();
             String name = nameEditText.getText().toString();
             String surname = surnameEditText.getText().toString();
             String patronymic = patronymicEditText.getText().toString();
@@ -102,10 +104,14 @@ public class AccountFragment extends Fragment {
                 // Показать дополнительные поля для ввода
                 emailEditText.setVisibility(View.VISIBLE);
                 passwordEditText.setVisibility(View.VISIBLE);
+                confirmPasswordEditText.setVisibility(View.VISIBLE);
                 nameEditText.setVisibility(View.VISIBLE);
                 surnameEditText.setVisibility(View.VISIBLE);
                 patronymicEditText.setVisibility(View.VISIBLE);
                 Toast.makeText(getContext(), "Пожалуйста, заполните все обязательные поля", Toast.LENGTH_SHORT).show();
+            } else if (!password.equals(confirmPassword)) {
+                // Пароли не совпадают
+                Toast.makeText(getContext(), "Пароли должны совпадать", Toast.LENGTH_SHORT).show();
             } else {
                 // Логика для создания аккаунта
                 Toast.makeText(getContext(), "Создание аккаунта: " + email, Toast.LENGTH_SHORT).show();
