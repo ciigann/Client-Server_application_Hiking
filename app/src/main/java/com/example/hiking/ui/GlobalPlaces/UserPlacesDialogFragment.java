@@ -225,15 +225,28 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
     @Override
     public void onPlaceClick(String place) {
         // Извлечь данные места из строки
-        String[] parts = place.split(" ");
-        if (parts.length >= 6) {
-            String placeName = parts[1]; // Предполагается, что название места находится во второй части строки
-            String placeDescription = parts[5]; // Предполагается, что описание места находится в шестой части строки
-            String placeCoordinates = parts[3]; // Предполагается, что координаты места находятся в четвертой части строки
+        String placeName = extractValue(place, "Место:", "Координаты:");
+        String coordinates = extractValue(place, "Координаты:", "Описание:");
+        String description = extractValue(place, "Описание:", "Приватность:");
+        boolean isPrivate = Boolean.parseBoolean(extractValue(place, "Приватность:", ""));
 
-            openPlaceDetailsDialog(placeName, placeDescription, placeCoordinates);
-        }
+        openPlaceDetailsDialog(placeName, description, coordinates);
     }
+
+    private String extractValue(String input, String startTag, String endTag) {
+        int startIndex = input.indexOf(startTag);
+        if (startIndex != -1) {
+            startIndex += startTag.length();
+            int endIndex = input.indexOf(endTag, startIndex);
+            if (endIndex != -1) {
+                return input.substring(startIndex, endIndex).trim();
+            } else {
+                return input.substring(startIndex).trim();
+            }
+        }
+        return "";
+    }
+
 
     private void openPlaceDetailsDialog(String placeName, String placeDescription, String placeCoordinates) {
         PlaceDetailsDialogFragment dialogFragment = PlaceDetailsDialogFragment.newInstance(placeName, placeDescription, placeCoordinates);

@@ -544,6 +544,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
         }).start();
     }
 
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
