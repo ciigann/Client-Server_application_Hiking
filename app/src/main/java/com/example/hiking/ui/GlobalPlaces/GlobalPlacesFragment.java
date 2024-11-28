@@ -195,7 +195,8 @@ public class GlobalPlacesFragment extends Fragment implements GlobalPlacesAdapte
                         outputStream = client.getOutputStream();
                         inputStream = client.getInputStream();
                     }
-                    String request = "<globalplaces_coordinates>" + email;
+                    String sessionId = sharedViewModel.getSessionId();
+                    String request = "<globalplaces_coordinates>" + email  + "<session_id>" + sessionId;
                     outputStream.write(request.getBytes("UTF-8"));
                     byte[] buffer = new byte[1024];
                     int bytesRead = inputStream.read(buffer);
