@@ -68,7 +68,6 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
         userPlacesAdapter = new UserPlacesAdapter(new ArrayList<>(), requireContext(), this);
         recyclerView.setAdapter(userPlacesAdapter);
 
-
         // Инициализация SharedPreferences
         sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
         sharedViewModel.setSessionId(sharedPreferences.getString("session_id", ""));
@@ -76,7 +75,6 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
         // Загрузка сохраненных значений IP и порта
         SERVER_IP = sharedPreferences.getString("server_ip", SERVER_IP);
         SERVER_PORT = sharedPreferences.getInt("server_port", SERVER_PORT);
-
 
         Button closeButton = view.findViewById(R.id.closeButton);
         closeButton.setOnClickListener(v -> {
@@ -157,7 +155,6 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
             @Override
             public void run() {
                 try {
-
                     // Инициализация SharedPreferences
                     sharedPreferences = requireContext().getSharedPreferences("AccountPrefs", Context.MODE_PRIVATE);
                     sharedViewModel.setSessionId(sharedPreferences.getString("session_id", ""));
@@ -176,7 +173,8 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
                         inputStream = client.getInputStream();
                     }
                     int loadedUserGlobalPlacesNumber = sharedViewModel.getLoadedUserGlobalPlacesNumber();
-                    String request = "<more_globalplaces_coordinates>" + loadedUserGlobalPlacesNumber + "<email>" + userEmail;
+                    String sessionId = sharedViewModel.getSessionId();
+                    String request = "<more_globalplaces_coordinates>" + loadedUserGlobalPlacesNumber + "<session_id>" + sessionId + "<email>" + userEmail;
                     outputStream.write(request.getBytes("UTF-8"));
                     byte[] buffer = new byte[1024];
                     int bytesRead = inputStream.read(buffer);
@@ -184,13 +182,15 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
                     requireActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (response.contains("<more_globalplaces_coordinates>True<email>" + userEmail)) {
+                            if (response.contains("<more_globalplaces_coordinates>True")) {
+                                String sessionId = extractEchoValue(response, "<session_id>", "<places>");
                                 String placesData = extractEchoValue(response, "<places>", "<places_end>");
                                 List<String> newPlaces = parsePlacesData(placesData);
                                 List<String> currentPlacesList = new ArrayList<>(adapter.getPlaces());
                                 currentPlacesList.addAll(newPlaces);
                                 adapter.updatePlaces(currentPlacesList);
                                 sharedViewModel.incrementLoadedUserGlobalPlacesNumber();
+                                sharedViewModel.setSessionId(sessionId);
                             } else {
                                 Toast.makeText(requireContext(), "Все места загружены в ленту", Toast.LENGTH_SHORT).show();
                             }
@@ -210,8 +210,6 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
             }
         }).start();
     }
-
-
 
     private String extractEchoValue(String response, String startTag, String endTag) {
         int startIndex = response.indexOf(startTag);
@@ -246,7 +244,6 @@ public class UserPlacesDialogFragment extends DialogFragment implements UserPlac
         }
         return "";
     }
-
 
     private void openPlaceDetailsDialog(String placeName, String placeDescription, String placeCoordinates) {
         PlaceDetailsDialogFragment dialogFragment = PlaceDetailsDialogFragment.newInstance(placeName, placeDescription, placeCoordinates);
