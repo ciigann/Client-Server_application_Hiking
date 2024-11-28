@@ -377,11 +377,13 @@ public class AccountFragment extends Fragment {
     }
 
     private void showPlacesReceivedMessage(List<String> places) {
-        StringBuilder message = new StringBuilder("Места получены:\n");
+        StringBuilder message = new StringBuilder("");
         for (String place : places) {
             message.append(place).append("\n");
         }
-        Toast.makeText(requireContext(), message.toString(), Toast.LENGTH_LONG).show();
+        if (message != null) {
+            Toast.makeText(requireContext(), "Места получены", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void sendCreateAccountRequest(final String email, final String password, final String name, final String surname, final String patronymic, final EditText emailEditText, final EditText passwordEditText) {

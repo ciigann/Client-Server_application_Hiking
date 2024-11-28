@@ -151,17 +151,23 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
 
     private List<String> parseResponse(String response) {
         List<String> newPlaces = new ArrayList<>();
-        String places = extractEchoValue(response, "<places>", "<places_end>");
+        String places = extractEchoValue(response, "<place>", "<place_end>");
         if (places != null) {
-            String[] parts = places.split(";");
-            for (String part : parts) {
-                String[] placeAndTime = part.split("<time>");
-                if (placeAndTime.length == 2) {
-                    String place = placeAndTime[0].trim();
-                    String time = placeAndTime[1].trim();
-                    newPlaces.add("Место: " + place + " Время: " + time);
-                } else {
-                    newPlaces.add("" + part.trim());
+            String[] placeEntries = places.split(";");
+            for (String placeEntry : placeEntries) {
+                String[] placeParts = placeEntry.split("<coordinates>");
+                if (placeParts.length == 2) {
+                    String name = placeParts[0].trim();
+                    String[] coordsAndDescription = placeParts[1].split("<description>");
+                    if (coordsAndDescription.length == 2) {
+                        String coordinates = coordsAndDescription[0].trim();
+                        String[] descriptionAndPrivacy = coordsAndDescription[1].split("<privacy>");
+                        if (descriptionAndPrivacy.length == 2) {
+                            String description = descriptionAndPrivacy[0].trim();
+                            String privacy = descriptionAndPrivacy[1].trim();
+                            newPlaces.add("Место: " + name + " Координаты: " + coordinates + " Описание: " + description + " Приватность: " + privacy);
+                        }
+                    }
                 }
             }
         }
@@ -180,6 +186,7 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         }
         return null;
     }
+
 
     @Override
     public void onDestroyView() {
