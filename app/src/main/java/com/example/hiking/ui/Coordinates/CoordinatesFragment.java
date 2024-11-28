@@ -320,7 +320,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                     if (lastLocation != null) {
                         float[] results = new float[1];
                         Location.distanceBetween(lastLatitude, lastLongitude, averageLatitude, averageLongitude, results);
-                        double distance = results[0];
+                        double distance = results[0]/10;
 
                         if (distance < 13) {
                             distance = 0.00;
@@ -336,8 +336,18 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
                         averageSpeed = totalDistance / elapsedTime; // speed in m/s
                         averageSpeedTextView.setText("Средняя скорость: " + String.format("%.2f", averageSpeed * 3.6) + " км/ч");
-                        distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistance) + " м за время: " + elapsedTime + " с");
+
+                        // общее расстояние
+                        double totalDistanceKm = totalDistance / 1000.0;
+
+                        // Время
+                        long hours = elapsedTime / 3600;
+                        long minutes = (elapsedTime % 3600) / 60;
+                        long seconds = elapsedTime % 60;
+
+                        distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistanceKm) + " км за время: " + hours + ":" + String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
                         timeDistanceTextView.setText("За 10 секунд пройдено: " + String.format("%.2f", distance) + " м");
+
                     }
                     lastLocation = new Location("");
                     lastLocation.setLatitude(averageLatitude);
