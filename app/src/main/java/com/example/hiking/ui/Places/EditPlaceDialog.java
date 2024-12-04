@@ -120,7 +120,7 @@ public class EditPlaceDialog extends Dialog {
         if (parts.length == 2) {
             double latitude = Double.parseDouble(parts[0].trim());
             double longitude = Double.parseDouble(parts[1].trim());
-            String url = "https://www.google.com/maps?q=" + latitude + "," + longitude + "&z=15&output=embed";
+            String url = "https://www.google.com/maps/search/?api=1&query=" + latitude + "," + longitude;
             webView.loadUrl(url);
         }
     }
@@ -133,10 +133,3 @@ public class EditPlaceDialog extends Dialog {
         void onDeletePlaceClick(String name);
     }
 }
-
-
-
-
-
-
-
