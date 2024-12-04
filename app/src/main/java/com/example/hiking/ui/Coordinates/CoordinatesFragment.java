@@ -331,7 +331,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                             String coordinates = "<location>" + averageLatitude + "," + averageLongitude + "<session_id>" + sessionId + "<time>" + currentTime;
                             sendLocation(coordinates);
                         }
-
+                        distance = distance*2;
                         totalDistance += distance;
                         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // time in seconds
                         averageSpeed = totalDistance / elapsedTime; // speed in m/s
@@ -345,7 +345,7 @@ public class CoordinatesFragment extends Fragment implements CoordinatesAdapter.
                         long minutes = (elapsedTime % 3600) / 60;
                         long seconds = elapsedTime % 60;
 
-                        distanceTextView.setText("Пройдено расстояние: " + String.format("%.2f", totalDistanceKm) + " км за время: " + hours + ":" + String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
+                        distanceTextView.setText("Пройдено расстояние: " + String.format("%.3f", totalDistanceKm) + " км за время: " + hours + ":" + String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
                         timeDistanceTextView.setText("За 10 секунд пройдено: " + String.format("%.2f", distance) + " м");
 
                     }
