@@ -165,7 +165,7 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
                         if (descriptionAndPrivacy.length == 2) {
                             String description = descriptionAndPrivacy[0].trim();
                             String privacy = descriptionAndPrivacy[1].trim();
-                            newPlaces.add("Место: " + name + " Координаты: " + coordinates + " Описание: " + description + " Приватность: " + privacy);
+                            newPlaces.add("Место: " + name + " Координаты: " + coordinates + " Описание: " + description + " Приватность: " + privacy +";");
                         }
                     }
                 }
@@ -215,7 +215,7 @@ public class PlacesFragment extends Fragment implements PlacesAdapter.OnPlaceCli
         String placeName = extractValue(place, "Место:", "Координаты:");
         String coordinates = extractValue(place, "Координаты:", "Описание:");
         String description = extractValue(place, "Описание:", "Приватность:");
-        boolean isPrivate = Boolean.parseBoolean(extractValue(place, "Приватность:", ""));
+        boolean isPrivate = Boolean.parseBoolean(extractValue(place, "Приватность:", ";"));
 
         showEditPlaceDialog(placeName, coordinates, description, isPrivate);
     }
